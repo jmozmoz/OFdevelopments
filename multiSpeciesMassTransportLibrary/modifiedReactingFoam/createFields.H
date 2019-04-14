@@ -1,35 +1,38 @@
 
 
-//Info<< nl << "Reading thermophysicalProperties" << endl;
-Info<< nl << "Creating combustion model" << endl;
+////Info<< nl << "Reading thermophysicalProperties" << endl;
+//Info<< nl << "Creating combustion model" << endl;
+//
+//// A.Alexiou 2014
+//// autoPtr<combustionModels:: psiChemistryCombustionModel> combustion // OF 2.1
+//autoPtr<combustionModels::psiCombustionModel> combustion // OF 2.3
+//(
+// // A.Alexiou 2014
+// //combustionModels::psiChemistryCombustionModel::New(mesh) // OF 2.1
+// combustionModels::psiCombustionModel::New(mesh) // OF 2.3
+//);
 
-// A.Alexiou 2014
-// autoPtr<combustionModels:: psiChemistryCombustionModel> combustion // OF 2.1
-autoPtr<combustionModels::psiCombustionModel> combustion // OF 2.3
-(
- // A.Alexiou 2014
- //combustionModels::psiChemistryCombustionModel::New(mesh) // OF 2.1
- combustionModels::psiCombustionModel::New(mesh) // OF 2.3
-);
+//// M. Lindner, A.Alexiou 2014
+//// psiChemistryModel& chemistry = combustion->pChemistry(); // OF 2.1
+//autoPtr<psiChemistryModel> pChemistry // OF 2.3
+//(
+//    psiChemistryModel::New(mesh) // OF 2.3
+//);
+//
+//// M. Lindner 2014
+//psiChemistryModel& chemistry = pChemistry(); // OF 2.3
+//
+//// A.Alexiou 2014
+//// hsCombustionThermo& thermo = chemistry.thermo(); // OF 2.1
+//psiReactionThermo& thermo = chemistry.thermo(); // OF 2.3
 
-// M. Lindner, A.Alexiou 2014
-// psiChemistryModel& chemistry = combustion->pChemistry(); // OF 2.1
-autoPtr<psiChemistryModel> pChemistry // OF 2.3
-(
-    psiChemistryModel::New(mesh) // OF 2.3
-);
-
-// M. Lindner 2014
-psiChemistryModel& chemistry = pChemistry(); // OF 2.3
-
-// A.Alexiou 2014
-// hsCombustionThermo& thermo = chemistry.thermo(); // OF 2.1
-psiReactionThermo& thermo = chemistry.thermo(); // OF 2.3
+Info<< "Reading thermophysical properties\n" << endl;
+autoPtr<psiReactionThermo> pThermo(psiReactionThermo::New(mesh));
+psiReactionThermo& thermo = pThermo();
+thermo.validate(args.executable(), "h", "e");
 
 basicMultiComponentMixture& composition = thermo.composition();
 PtrList<volScalarField>& Y = composition.Y();
-
-
 
 word inertSpecie(thermo.lookup("inertSpecie"));
 
@@ -62,6 +65,8 @@ volVectorField U
 
 volScalarField& p = thermo.p();
 const volScalarField& psi = thermo.psi();
+
+pressureControl pressureControl(p, rho, pimple.dict(), false);
 
 // A.Alexiou 2014
 // volScalarField& hs = thermo.hs();
@@ -112,8 +117,15 @@ autoPtr<compressible::turbulenceModel> turbulence
     )
 );
 
+Info<< "Creating reaction model\n" << endl;
+autoPtr<CombustionModel<psiReactionThermo>> reaction
+(
+    CombustionModel<psiReactionThermo>::New(thermo, turbulence())
+);
+
+
 // Set the turbulence into the combustion model
-combustion->setTurbulence(turbulence());
+//combustion->setTurbulence(turbulence());
 
 /*Info<< "Creating field DpDt\n" << endl;
 volScalarField DpDt =
@@ -168,7 +180,11 @@ autoPtr<multiSpeciesTransportModel> mstm
     multiSpeciesTransportModel::New
     (
         thermo,
-        turbulence()
+        turbulence(),
+        phi
     )
 );
 // ------------------------------------------------------------------------- //
+
+#include "createMRF.H"
+#include "createFvOptions.H"

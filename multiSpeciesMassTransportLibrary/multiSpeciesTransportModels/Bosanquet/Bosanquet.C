@@ -32,7 +32,7 @@ template<class ThermoType>
 void Foam::Bosanquet<ThermoType>::updateCoefficients()
 {
     Fick<ThermoType>::updateCoefficients();
-    
+
     forAll(this->D_, i)
     {
       this->D_.set
@@ -52,10 +52,11 @@ Foam::Bosanquet<ThermoType>::Bosanquet
     // A.Alexiou 2014
     // hsCombustionThermo& thermo,
     psiReactionThermo& thermo,
-    const compressible::turbulenceModel& turbulence
+    const compressible::turbulenceModel& turbulence,
+    const surfaceScalarField& phi
 )
 :
-    Fick<ThermoType>(thermo, turbulence)
+    Fick<ThermoType>(thermo, turbulence, phi)
 {
     // Construct the Knudsen diffusivity model
     DKModel_.set(new KnudsenDiffusivityModel(thermo.T(), this->species()));

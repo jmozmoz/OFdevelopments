@@ -30,7 +30,7 @@ License
 
 template<class ThermoType>
 void Foam::Fick<ThermoType>::updateCoefficients()
-{     
+{
     DijModel_().update();
 
     forAll(species(), i)
@@ -41,7 +41,7 @@ void Foam::Fick<ThermoType>::updateCoefficients()
             forAll(species(), j)
             {
                 if (j != i)
-                {     
+                {
                     tmpGamma += x_[j] / Dij(i,j);
                 }
             }
@@ -62,13 +62,13 @@ void Foam::Fick<ThermoType>::updateCoefficients()
                 {
                     if((1-yi.boundaryField()[boundaryI][faceI])==0)
                     {
-                        D_[i].boundaryField()[boundaryI][faceI] = 0;
-                    }  
+                        D_[i].boundaryFieldRef()[boundaryI][faceI] = 0;
+                    }
                 }
-            }    
+            }
         }
     }
-} 
+}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -79,21 +79,23 @@ Foam::Fick<ThermoType>::Fick
     // A.Alexiou 2014
     //hsCombustionThermo& thermo,
     psiReactionThermo& thermo,
-    const compressible::turbulenceModel& turbulence
+    const compressible::turbulenceModel& turbulence,
+    const surfaceScalarField& phi
 )
 :
-    multiSpeciesTransportModel(thermo, turbulence),
-    
+    multiSpeciesTransportModel(thermo, turbulence, phi),
+
     speciesThermo_
     (
         dynamic_cast<const multiComponentMixture<ThermoType>&>
             (this->thermo_).speciesData()
     )
-{    
+
+{
     D_.setSize(species().size()-1);
-    
+
     updateMolarFractions();
-    
+
     forAll(D_, i)
     {
         D_.set
@@ -112,7 +114,7 @@ Foam::Fick<ThermoType>::Fick
                 dimensionedScalar("D", dimensionSet(1, -1, -1, 0, 0), 0.0)
             )
         );
-    } 
+    }
 }
 
 
@@ -130,10 +132,10 @@ Foam::scalar Foam::Fick<ThermoType>::correct
     scalar eqnResidual = 1;
 
     volScalarField yt = 0.0*thermo_.composition().Y(0);
-    surfaceScalarField nt = turbulence_.phi();
-    
+    surfaceScalarField nt = phi_;
+
     forAll(this->D_, i)
-    {  
+    {
         volScalarField& yi = thermo_.composition().Y(i);
         surfaceScalarField& ni = n_[i];
 
@@ -143,7 +145,7 @@ Foam::scalar Foam::Fick<ThermoType>::correct
             (
                 mesh_,
                 fields,
-                turbulence_.phi(),
+                phi_,
                 mesh_.divScheme("div(phi,Yi_h)")
             )
         );
@@ -152,34 +154,35 @@ Foam::scalar Foam::Fick<ThermoType>::correct
         {
             yi.storePrevIter();
         }
-            
-        tmp<fvScalarMatrix> yEqn
-        (   
+
+        fvScalarMatrix yEqn
+        (
             fvm::ddt(thermo_.rho(), yi)
-//           + fvm::div(turbulence_.phi(), yi, "div(phi,Yi_h)")
-          + mvConvection->fvmDiv(turbulence_.phi(), yi)
+//           + fvm::div(phi_, yi, "div(phi,Yi_h)")
+        + mvConvection->fvmDiv(phi_, yi)
+//          + mvConvection->fvmDiv(phi_, yi)
           - fvm::laplacian(D_[i],yi, "laplacian(D,Yi)")
           ==
             Sy_[i]
         );
 
-        eqnResidual = solve(yEqn() , mesh_.solver("Yi")).initialResidual();
+        eqnResidual = yEqn.solve(mesh_.solver("Yi")).initialResidual();
         maxResidual = max(eqnResidual, maxResidual);
 
         if (mesh_.relaxField("Yi"))//Mohsen
         {
-	  yi.relax(mesh_.fieldRelaxationFactor("Yi"));//Mohsen
+            yi.relax(mesh_.fieldRelaxationFactor("Yi"));//Mohsen
         }
 
         yi.max(0.0);
 //         yi.min(1.0);
 
-        ni = yEqn().flux();
+        ni = yEqn.flux();
 
         nt -= ni;
-        yt += yi;  
+        yt += yi;
     }
-     
+
     // Calculate inert species
     volScalarField& yInert = thermo_.composition().Y()[inertIndex_];
     yInert = 1 - yt;
@@ -187,12 +190,12 @@ Foam::scalar Foam::Fick<ThermoType>::correct
     {
         forAll(yInert.boundaryField()[boundaryI], faceI)
         {
-            yInert.boundaryField()[boundaryI][faceI] = 1- yt.boundaryField()[boundaryI][faceI];
+            yInert.boundaryFieldRef()[boundaryI][faceI] = 1- yt.boundaryField()[boundaryI][faceI];
         }
     }
     yInert.max(0.0);
     n_[inertIndex_] = nt;
-          
+
     updateMolarFractions();
 
     return maxResidual;
@@ -210,6 +213,6 @@ bool Foam::Fick<ThermoType>::read()
         return false;
     }
 }
-   
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

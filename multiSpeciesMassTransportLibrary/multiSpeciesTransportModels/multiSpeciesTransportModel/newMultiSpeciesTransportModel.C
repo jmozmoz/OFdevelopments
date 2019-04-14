@@ -32,7 +32,8 @@ Foam::autoPtr<Foam::multiSpeciesTransportModel>
 Foam::multiSpeciesTransportModel::New
 (
     psiReactionThermo& thermo,
-    const compressible::turbulenceModel& turbulence
+    const compressible::turbulenceModel& turbulence,
+    const surfaceScalarField& phi
 )
 {
     word modelName;
@@ -55,7 +56,7 @@ Foam::multiSpeciesTransportModel::New
 
         dict.lookup("multispeciesTransportModel") >> modelName;
     }
-  
+
     fvMeshConstructorTable::iterator cstrIter =
         fvMeshConstructorTablePtr_->find(modelName);
 
@@ -73,7 +74,7 @@ Foam::multiSpeciesTransportModel::New
   }
 
   return autoPtr<multiSpeciesTransportModel>
-      (cstrIter()(thermo, turbulence));
+      (cstrIter()(thermo, turbulence, phi));
 }
 
 

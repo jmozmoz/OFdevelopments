@@ -14,5 +14,5 @@ tmp<fv::convectionScheme<scalar> > mvConvection
 // mstm().correct(kappa, chemistry, fields); // OF 2.1
 // ------------------------------------------------------------------------- //
 // A.Alexiou 2015
-mstm().correct(Y, kappa, chemistry, fields); // OF 2.3
+mstm().correct(Y, kappa, /*chemistry,*/ fields); // OF 2.3
 // ------------------------------------------------------------------------- //

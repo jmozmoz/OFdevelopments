@@ -39,14 +39,16 @@ Description
 
 
 #include "fvCFD.H"
-#include "fvm.H"
-#include "fvOption.H"
-#include "fvIOoptionList.H"
-#include "meshToMesh.H"
-#include "turbulenceModel.H"
-#include "psiChemistryCombustion.H"
+#include "turbulentFluidThermoModel.H"
+#include "psiReactionThermo.H"
+#include "CombustionModel.H"
 #include "multivariateScheme.H"
 #include "pimpleControl.H"
+#include "pressureControl.H"
+#include "fvOptions.H"
+#include "localEulerDdtScheme.H"
+#include "fvcSmooth.H"
+
 
 // ----------------------------- code addition ----------------------------- //
 #include "multiSpeciesTransportModel.H"
@@ -60,39 +62,43 @@ Description
 
 int main(int argc, char *argv[])
 {
-#   include "setRootCase.H"
-#   include "createTime.H"
-#   include "createMesh.H"
+    #include "postProcess.H"
 
+    #include "setRootCaseLists.H"
+    #include "createTime.H"
+    #include "createMesh.H"
+    #include "createControl.H"
+    #include "createTimeControls.H"
+    #include "initContinuityErrs.H"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 //#   include "readChemistryProperties.H"//////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    Info<< "Reading chemistry properties\n" << endl;
-
-    IOdictionary chemistryProperties
-    (
-        IOobject
-        (
-            "chemistryProperties",
-            runTime.constant(),
-            mesh,
-            IOobject::MUST_READ,
-            IOobject::NO_WRITE,
-            false
-        )
-    );
-
-    Switch turbulentReaction(chemistryProperties.lookup("turbulentReaction"));
-
-    dimensionedScalar Cmix("Cmix", dimless, 1.0);
-
-    if (turbulentReaction)
-    {
-        chemistryProperties.lookup("Cmix") >> Cmix;
-    }
+//    Info<< "Reading chemistry properties\n" << endl;
+//
+//    IOdictionary chemistryProperties
+//    (
+//        IOobject
+//        (
+//            "chemistryProperties",
+//            runTime.constant(),
+//            mesh,
+//            IOobject::MUST_READ,
+//            IOobject::NO_WRITE,
+//            false
+//        )
+//    );
+//
+//    Switch turbulentReaction(chemistryProperties.lookup("turbulentReaction"));
+//
+//    dimensionedScalar Cmix("Cmix", dimless, 1.0);
+//
+//    if (turbulentReaction)
+//    {
+//        chemistryProperties.lookup("Cmix") >> Cmix;
+//    }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -293,7 +299,7 @@ int main(int argc, char *argv[])
 #   include "compressibleCourantNo.H"
 #   include "setInitialDeltaT.H"
 
-  pimpleControl pimple(mesh);  //Mohsen
+//  pimpleControl pimple(mesh);  //Mohsen
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -305,7 +311,6 @@ int main(int argc, char *argv[])
       //#       include "readPISOControls.H" Mohsen
 #       include "compressibleCourantNo.H"
 #       include "setDeltaT.H"
-#include "meshToMesh.H"
         runTime++;
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
@@ -313,7 +318,7 @@ int main(int argc, char *argv[])
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-#       include "chemistry.H"////////////////////////////////////////////////////////////////////////////
+//#       include "chemistry.H"////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //        {
@@ -356,25 +361,11 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // M.Lindner 2014, A.Alexiou 2015
-        fv::IOoptionList fvOptions(mesh); // for compatibility with OF 2.3, since rhoEqn.H changed
+//        fv::IOoptionList fvOptions(mesh); // for compatibility with OF 2.3, since rhoEqn.H changed
 
 
-#ifndef RHO_EQN_2_1
-
-        // A.Alexiou 2015
 #include "rhoEqn.H" // OF header/source
 
-#else
-
-// A.Alexiou 2015
-// original rhoEqn.H from OF 2.1, works fine with OF 2.3, but then rhoEqn.H has to be
-// commented and 'fv::IOoptionList fvOptions(mesh);' is not used
-
-        {
-            solve(fvm::ddt(rho) + fvc::div(phi));
-        }
-
-#endif
 
 // A.Alexiou - for debugging
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -468,7 +459,6 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #           include "hsEqn.H"////////////////////////////////////////////////////////////////////////////
@@ -740,7 +730,7 @@ int main(int argc, char *argv[])
         {
             // A.Alexiou 2015
             thermo.T().write();
-            chemistry.dQ()().write();
+//            chemistry.dQ()().write();
             // A.Alexiou 2015
             forAll(composition.Y(), i)
             {

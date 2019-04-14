@@ -27,7 +27,7 @@ Class
 
 Description
     Multispecies mass transport model based on Schmidt number.
-  
+
 SourceFiles
     LewisNumber.C
 
@@ -42,7 +42,7 @@ SourceFiles
 
 namespace Foam
 {
-  
+
 /*---------------------------------------------------------------------------*\
                              Class LewisNumber Declaration
 \*---------------------------------------------------------------------------*/
@@ -51,27 +51,27 @@ template<class ThermoType>
 class LewisNumber
 :
     public Fick<ThermoType>
-{  
+{
 
 protected:
-  
+
     // Protected data
 
         //- Schmidt number
         scalar Le_;
 
     // Protected member functions
-    
+
         //- Update the coefficients of the species equations
         void updateCoefficients();
-    
+
 
 public:
 
     //- Runtime type information
     TypeName("LewisNumber");
 
-    
+
     // Constructors
 
         //- Construct from components
@@ -80,16 +80,17 @@ public:
             // A.Alexiou 2014
             // hsCombustionThermo& thermo,
             psiReactionThermo& thermo,
-            const compressible::turbulenceModel& turbulence
+            const compressible::turbulenceModel& turbulence,
+            const surfaceScalarField& phi
         );
 
 
     //- Destructor
-    ~LewisNumber()
+    virtual ~LewisNumber()
     {}
   };
 
-  
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 }	// End namespace Foam

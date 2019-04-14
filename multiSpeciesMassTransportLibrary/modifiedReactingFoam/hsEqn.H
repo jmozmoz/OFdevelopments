@@ -1,4 +1,3 @@
-
 {
     fvScalarMatrix hsEqn
             (

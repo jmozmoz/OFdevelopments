@@ -42,7 +42,7 @@ SourceFiles
 
 namespace Foam
 {
-  
+
 /*---------------------------------------------------------------------------*\
                              Class Bosanquet Declaration
 \*---------------------------------------------------------------------------*/
@@ -56,7 +56,7 @@ class FickDilutedMixture
 protected:
 
     // Protected member functions
-    
+
         //- Update the coefficients of the species equations
         void updateCoefficients();
 
@@ -66,7 +66,7 @@ public:
     //- Runtime type information
     TypeName("FickDilutedMixture");
 
-    
+
     // Constructors
 
         //- Construct from components
@@ -75,16 +75,17 @@ public:
             // A.Alexiou 2014
             //hsCombustionThermo& thermo,
             psiReactionThermo& thermo,
-            const compressible::turbulenceModel& turbulence
+            const compressible::turbulenceModel& turbulence,
+            const surfaceScalarField& phi
         );
 
 
     //- Destructor
-    ~FickDilutedMixture()
+    virtual ~FickDilutedMixture()
     {}
   };
 
-  
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 }	// End namespace Foam

@@ -27,7 +27,7 @@ Class
 
 Description
     Multispecies mass transport model based on Schmidt number.
-  
+
 SourceFiles
     SchmidtNumber.C
 
@@ -42,7 +42,7 @@ SourceFiles
 
 namespace Foam
 {
-  
+
 /*---------------------------------------------------------------------------*\
                              Class SchmidtNumber Declaration
 \*---------------------------------------------------------------------------*/
@@ -51,27 +51,27 @@ template<class ThermoType>
 class SchmidtNumber
 :
     public Fick<ThermoType>
-{  
+{
 
 protected:
-  
+
     // Protected data
 
         //- Schmidt number
         scalar Sc_;
 
     // Protected member functions
-    
+
         //- Update the coefficients of the species equations
         void updateCoefficients();
-    
+
 
 public:
 
     //- Runtime type information
     TypeName("SchmidtNumber");
 
-    
+
     // Constructors
 
         //- Construct from components
@@ -80,16 +80,17 @@ public:
             // A.Alexiou 2014
             //hsCombustionThermo& thermo,
             psiReactionThermo& thermo,
-            const compressible::turbulenceModel& turbulence
+            const compressible::turbulenceModel& turbulence,
+            const surfaceScalarField& phi
         );
 
 
     //- Destructor
-    ~SchmidtNumber()
+    virtual ~SchmidtNumber()
     {}
   };
 
-  
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 }	// End namespace Foam

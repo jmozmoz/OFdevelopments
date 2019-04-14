@@ -24,10 +24,11 @@ License
 
 \*---------------------------------------------------------------------------*/
 
+#include "fvCFD.H"
 #include "multiSpeciesTransportModel.H"
 #include "dimensionedConstants.H"
 #include "constants.H" //Mohsen
-#include "psiChemistryCombustion.H"
+//#include "psiChemistryCombustion.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -55,7 +56,13 @@ void Foam::multiSpeciesTransportModel::updateMolarFractions()
         const scalarField& yCells =
             thermo_.composition().Y(i).internalField();
 
-        scalarField& xCells = x_[i].internalField();
+        const scalarField& xCellsConst =
+            x_[i].internalField();
+
+        scalarField& xCells = const_cast<scalarField&>
+        (
+            xCellsConst
+        );
 
         forAll(xCells, cellI)
         {
@@ -73,7 +80,7 @@ void Foam::multiSpeciesTransportModel::updateMolarFractions()
             const fvPatchScalarField& py =
                 thermo_.composition().Y(i).boundaryField()[patchI];
 
-            fvPatchScalarField& px = x_[i].boundaryField()[patchI];
+            fvPatchScalarField& px = x_[i].boundaryFieldRef()[patchI];
 
             forAll(px, faceI)
             {
@@ -90,7 +97,8 @@ void Foam::multiSpeciesTransportModel::updateMolarFractions()
 Foam::multiSpeciesTransportModel::multiSpeciesTransportModel
 (
     psiReactionThermo& thermo,
-    const compressible::turbulenceModel& turbulence
+    const compressible::turbulenceModel& turbulence,
+    const surfaceScalarField& phi
 )
 :
     IOdictionary
@@ -130,7 +138,8 @@ Foam::multiSpeciesTransportModel::multiSpeciesTransportModel
     // The last specie in the list is the default inertspecie
     inertIndex_(species().size()-1),
 
-    turbulence_(turbulence)
+    turbulence_(turbulence),
+    phi_(phi)
 {
     // Construct the diffusivity model
     DijModel_.set(new diffusivityModel(thermo.p(), thermo.T(), pZones_, species()));
@@ -204,7 +213,7 @@ Foam::surfaceScalarField Foam::multiSpeciesTransportModel::j
 )
 {
     return n(i) -
-        fvc::interpolate(thermo_.composition().Y(i)) * turbulence_.phi();
+        fvc::interpolate(thermo_.composition().Y(i)) * phi_;
 }
 
 
@@ -234,7 +243,7 @@ Foam::scalar Foam::multiSpeciesTransportModel::correct
 (
     const PtrList<volScalarField>& Y,
     const volScalarField& kappa,
-    const psiChemistryModel& chemistry,
+//    const psiReactionThermo& chemistry,
     multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
 )
 {
@@ -243,7 +252,7 @@ Foam::scalar Foam::multiSpeciesTransportModel::correct
     {
           // A.Alexiou 2015
           // Sy_[i] = kappa*chemistry.RR(i); // OF 2.1
-          Sy_[i] = kappa*RR(Y[i].name(), chemistry,i); // OF 2.3
+          Sy_[i] = kappa*RR(Y[i].name(), /* chemistry, */ i); // OF 2.3
     }
 
     return correct(fields);
@@ -259,11 +268,10 @@ inline Foam::tmp<Foam::volScalarField>
 Foam::multiSpeciesTransportModel::RR
 (
     const word Yname,
-    const psiChemistryModel& chemistry,
+/*    const BasicChemistryModel<rhoReactionThermo>& pChemistry,*/
     const label i
 ) const
 {
-
     tmp<volScalarField> tRR
     (
         new volScalarField
@@ -271,12 +279,15 @@ Foam::multiSpeciesTransportModel::RR
             IOobject
             (
                 "RR(" + Yname + ')',
-                chemistry.time().timeName(),
-                chemistry.mesh(),
+                mesh_.time().timeName(),
+//                chemistry.time().timeName(),
+                mesh_,
+//                chemistry.mesh(),
                 IOobject::NO_READ,
                 IOobject::NO_WRITE
             ),
-            chemistry.mesh(),
+            mesh_,
+//            chemistry.mesh(),
             dimensionedScalar("zero", dimMass/dimVolume/dimTime, 0.0),
             zeroGradientFvPatchScalarField::typeName
         )
@@ -285,6 +296,7 @@ Foam::multiSpeciesTransportModel::RR
 //    // M. Yusufi, A.Alexiou 2015
 //    volScalarField& ttRR = tRR();
 
+    /*
     if (chemistry.chemistry())
     {
         // A.Alexiou 2015
@@ -293,6 +305,7 @@ Foam::multiSpeciesTransportModel::RR
 //        ttRR.internalField() = chemistry.RR(i);
 //        ttRR.correctBoundaryConditions();
     }
+    */
     return tRR;
 }
 
@@ -318,7 +331,7 @@ Foam::multiSpeciesTransportModel::multiSpeciesHeatSource()
         )
     );
 
-    volScalarField& msht = tMsht();
+    volScalarField& msht = tMsht.ref();
 
     volScalarField hsN("hsN",thermo_.he());
 
@@ -332,13 +345,14 @@ Foam::multiSpeciesTransportModel::multiSpeciesHeatSource()
         const fvPatchScalarField& pT =
             thermo_.T().boundaryField()[patchi];
 
-        fvPatchScalarField& pHsN = hsN.boundaryField()[patchi];
+        fvPatchScalarField& pHsN = hsN.boundaryFieldRef()[patchi];
 
         forAll(pT, facei)
         {
             pHsN[facei] = hs(inertIndex_,pT[facei]);
         }
     }
+
 
     forAll(species(), i)
     {
@@ -357,13 +371,14 @@ Foam::multiSpeciesTransportModel::multiSpeciesHeatSource()
             const fvPatchScalarField& pT =
                 thermo_.T().boundaryField()[patchi];
 
-            fvPatchScalarField& pHsi = hsi.boundaryField()[patchi];
+            fvPatchScalarField& pHsi = hsi.boundaryFieldRef()[patchi];
 
             forAll(pT, facei)
             {
                 pHsi[facei] = hs(i,pT[facei]);
             }
         }
+
 
 //         volScalarField alphaMinusRhoDHsi = (turbulence_.alphaEff() - D_[i]) * (hsi - hsN);
         volScalarField alphaMinusRhoDHsi = (turbulence_.alphaEff()) * (hsi - hsN);
@@ -372,19 +387,22 @@ Foam::multiSpeciesTransportModel::multiSpeciesHeatSource()
             fvc::laplacian(alphaMinusRhoDHsi, thermo_.composition().Y(i));
 
         volScalarField deltahs = hsi-hsN;
+
         laplacianAlpHsi += fvc::div(j(i),deltahs, "div(ji,hi)");
+
 
         forAll(msht, celli)
         {
             msht[celli] += laplacianAlpHsi[celli];
         }
 
+
         forAll(msht.boundaryField(), patchi)
         {
             const fvPatchScalarField& plaplacianAlpHsi =
                 laplacianAlpHsi.boundaryField()[patchi];
 
-            fvPatchScalarField& pmsht = msht.boundaryField()[patchi];
+            fvPatchScalarField& pmsht = msht.boundaryFieldRef()[patchi];
 
             forAll(pmsht, facei)
             {

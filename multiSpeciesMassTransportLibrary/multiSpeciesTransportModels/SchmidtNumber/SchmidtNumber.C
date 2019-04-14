@@ -30,12 +30,12 @@ License
 
 template<class ThermoType>
 void Foam::SchmidtNumber<ThermoType>::updateCoefficients()
-{  
+{
     forAll(this->D_, i)
     {
             this->D_[i] = this->turbulence_.muEff() / Sc_;
     }
-} 
+}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -46,13 +46,14 @@ Foam::SchmidtNumber<ThermoType>::SchmidtNumber
     // A.Alexiou 2014
     //hsCombustionThermo& thermo,
     psiReactionThermo& thermo,
-    const compressible::turbulenceModel& turbulence
+    const compressible::turbulenceModel& turbulence,
+    const surfaceScalarField& phi
 )
 :
-    Fick<ThermoType>(thermo, turbulence),
-    
-    Sc_(IOdictionary::lookupOrDefault<scalar>("Sc", 1))    
+    Fick<ThermoType>(thermo, turbulence, phi),
+
+    Sc_(IOdictionary::lookupOrDefault<scalar>("Sc", 1))
 {}
- 
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

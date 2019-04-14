@@ -27,7 +27,7 @@ Class
 
 Description
     Fick multispecies mass transport model with Knudsen diffusivity correction.
-  
+
 SourceFiles
     Bosanquet.C
 
@@ -43,7 +43,7 @@ SourceFiles
 
 namespace Foam
 {
-  
+
 /*---------------------------------------------------------------------------*\
                              Class Bosanquet Declaration
 \*---------------------------------------------------------------------------*/
@@ -55,24 +55,24 @@ class Bosanquet
 {
 
 protected:
-  
+
     // Protected data
-    
-        //- Diffusivity models 
+
+        //- Diffusivity models
         autoPtr<KnudsenDiffusivityModel> DKModel_;
 
 
     // Protected member functions
-    
+
         //- Update the coefficients of the species equations
         void updateCoefficients();
-  
+
 public:
 
     //- Runtime type information
     TypeName("Bosanquet");
 
-    
+
     // Constructors
 
         //- Construct from components
@@ -81,16 +81,17 @@ public:
             // A.Alexiou 2014
             // hsCombustionThermo& thermo,
             psiReactionThermo& thermo,
-            const compressible::turbulenceModel& turbulence
+            const compressible::turbulenceModel& turbulence,
+            const surfaceScalarField& phi
         );
 
 
     //- Destructor
-    ~Bosanquet()
+    virtual ~Bosanquet()
     {}
   };
 
-  
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 }	// End namespace Foam

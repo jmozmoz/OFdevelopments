@@ -32,7 +32,7 @@ template<class ThermoType>
 void Foam::FickDilutedMixture<ThermoType>::updateCoefficients()
 {
     this->DijModel_().update();
-    
+
     forAll(this->D_, i)
     {
         this->D_[i] =
@@ -49,10 +49,11 @@ Foam::FickDilutedMixture<ThermoType>::FickDilutedMixture
     // A.Alexiou 2014
     //hsCombustionThermo& thermo,
     psiReactionThermo& thermo,
-    const compressible::turbulenceModel& turbulence
+    const compressible::turbulenceModel& turbulence,
+    const surfaceScalarField& phi
 )
 :
-    Fick<ThermoType>(thermo, turbulence)
+    Fick<ThermoType>(thermo, turbulence, phi)
 {}
 
 

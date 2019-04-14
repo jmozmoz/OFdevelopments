@@ -35,7 +35,7 @@ void Foam::LewisNumber<ThermoType>::updateCoefficients()
     {
         this->D_[i] = this->turbulence_.alphaEff() / Le_;
     }
-} 
+}
 
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -46,13 +46,14 @@ Foam::LewisNumber<ThermoType>::LewisNumber
     // A.Alexiou 2014
     // hsCombustionThermo& thermo,
     psiReactionThermo& thermo,
-    const compressible::turbulenceModel& turbulence
+    const compressible::turbulenceModel& turbulence,
+    const surfaceScalarField& phi
 )
 :
-    Fick<ThermoType>(thermo, turbulence),
-    
-    Le_(IOdictionary::lookupOrDefault<scalar>("Le", 1))    
+    Fick<ThermoType>(thermo, turbulence, phi),
+
+    Le_(IOdictionary::lookupOrDefault<scalar>("Le", 1))
 {}
- 
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

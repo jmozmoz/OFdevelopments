@@ -27,7 +27,7 @@ Class
 
 Description
     Maxwell-Stefan multispecies mass transport model.
-  
+
 SourceFiles
     MaxwellStefan.C
 
@@ -43,7 +43,7 @@ SourceFiles
 
 namespace Foam
 {
-  
+
 /*---------------------------------------------------------------------------*\
                          Class MaxwellStefan Declaration
 \*---------------------------------------------------------------------------*/
@@ -52,10 +52,10 @@ template<class ThermoType>
 class MaxwellStefan
 :
     public multiSpeciesTransportModel
-{     
-  
+{
+
 protected:
-  
+
     // Protected data
 
         //- Thermodynamic data of the species
@@ -66,17 +66,17 @@ protected:
 
 
     // Protected member functions
-    
-        //- Update the coefficients of the species equations
-        void updateCoefficients(); 
-    
 
-public:    
+        //- Update the coefficients of the species equations
+        void updateCoefficients();
+
+
+public:
 
     //- Runtime type information
     TypeName("MaxwellStefan");
 
-    
+
     // Constructors
 
         //- Construct from components
@@ -85,7 +85,8 @@ public:
             // A.Alexiou 2014
             // hsCombustionThermo& thermo,
             psiReactionThermo& thermo,
-            const compressible::turbulenceModel& turbulence
+            const compressible::turbulenceModel& turbulence,
+            const surfaceScalarField& phi
         );
 
 
@@ -101,7 +102,7 @@ public:
         {
             return speciesThermo_[i].W();
         }
-    
+
         //- Specific enthalpy for a specie given by index and temperature
         scalar hs(label i, label T) const
         {
@@ -109,7 +110,7 @@ public:
             // return speciesThermo_[i].Hs(T)
             return speciesThermo_[i].hs(i,T);
         }
-        
+
         inline volScalarField& D(label i, label j)
         {
             label k = (species().size()-1)*i+j;
@@ -121,17 +122,17 @@ public:
             label k = (species().size()-1)*i+j;
             return G_[k];
         }
-        
+
         //- Solve the mass transport equantions without reactions
         virtual scalar correct
         (
             multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
         );
-                
+
         //- Read transportProperties dictionary
         virtual bool read();
   };
-  
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

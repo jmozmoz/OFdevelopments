@@ -37,7 +37,7 @@ namespace Foam
         addToRunTimeSelectionTable
         (
             binaryDiffusivityModel,
-            ChapmanEnskog, 
+            ChapmanEnskog,
             dictionary
         );
     }
@@ -57,26 +57,26 @@ Foam::binaryDiffusivityModels::ChapmanEnskog::ChapmanEnskog
 :
     binaryDiffusivityModel(name1, name2, dic, p, T)
 {
-    
+
     A = 1.06036;    B = 0.15610;    C = 0.19300;    DD = 0.47635;
     E = 1.03587;    F = 1.52996;    G = 1.76474;    H = 3.89411;
-    
+
     //const scalar& W1 = molecularWeights[name1];
     //const scalar& W2 = molecularWeights[name2];
     const scalar& W1 = readScalar(dic.subDict("molarWeight").lookup(name1));
     const scalar& W2 = readScalar(dic.subDict("molarWeight").lookup(name2));
-    
+
     const scalar& epsLJ1 = readScalar(dic.subDict("epsilonLJ").lookup(name1));
     const scalar& epsLJ2 = readScalar(dic.subDict("epsilonLJ").lookup(name2));
-    
+
     const scalar& sigma1 =
         readScalar(dic.subDict("collisionalDiametre").lookup(name1));
     const scalar& sigma2 =
-        readScalar(dic.subDict("collisionalDiametre").lookup(name2));   
-    
+        readScalar(dic.subDict("collisionalDiametre").lookup(name2));
+
     sigma_ij = (sigma1 + sigma2) / 2;
     W12 = (W1 * W2) / (W1 + W2);
-    phi =  101325; 
+    phi =  101325;
     E_ij = sqrt(epsLJ1*epsLJ2);
 }
 
@@ -91,7 +91,7 @@ Foam::tmp<Foam::scalarField> Foam::binaryDiffusivityModels::ChapmanEnskog::D
 ) const
 {
     tmp<scalarField> tD(new scalarField(T.size()));
-    scalarField& d = tD();
+    scalarField& d = tD.ref();
 
     forAll(T, facei)
     {
@@ -129,7 +129,7 @@ Foam::binaryDiffusivityModels::ChapmanEnskog::D() const
         )
     );
 
-    volScalarField& d = tD();
+    volScalarField& d = tD.ref();
 
     forAll(this->T_, celli)
     {
@@ -145,7 +145,7 @@ Foam::binaryDiffusivityModels::ChapmanEnskog::D() const
     {
         const fvPatchScalarField& pT = this->T_.boundaryField()[patchi];
         const fvPatchScalarField& pp = this->p_.boundaryField()[patchi];
-        fvPatchScalarField& pD = d.boundaryField()[patchi];
+        fvPatchScalarField& pD = d.boundaryFieldRef()[patchi];
 
         forAll(pT, facei)
         {

@@ -9,6 +9,7 @@ species
 
 reactions
 {
+/*
     reaction01
     {
     	type 		irreversibleArrheniusReaction;
@@ -19,4 +20,5 @@ reactions
         Ta           14906;
         //A, b, T from Arhenius equation k =A T exp b exp (-E/RT)
     }
+*/
 }

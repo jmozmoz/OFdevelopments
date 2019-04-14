@@ -30,7 +30,7 @@ License
 
 namespace Foam
 {
-  
+
     defineTypeNameAndDebug(Knudsen, 0);
 }
 
@@ -45,16 +45,16 @@ Foam::Knudsen::Knudsen
 )
 :
     dic_(dic),
-    
+
     name_(name),
 
     T_(T)
-{  
+{
     d = dimensionedScalar(dic_.lookup("poreDiametre")).value();
-  
+
     //W = molecularWeights[name];
     const scalar& W = readScalar(dic.subDict("molarWeight").lookup(name));
-    
+
     RR = 8314.51;
     PI = 3.14159;
 }
@@ -69,7 +69,7 @@ Foam::tmp<Foam::scalarField> Foam::Knudsen::DK
 ) const
 {
     tmp<scalarField> tDk(new scalarField(T.size()));
-    scalarField& dk = tDk();
+    scalarField& dk = tDk.ref();
 
     forAll(T, facei)
     {
@@ -101,7 +101,7 @@ Foam::tmp<Foam::volScalarField> Foam::Knudsen::DK() const
         )
     );
 
-    volScalarField& dk = tDk();
+    volScalarField& dk = tDk.ref();
 
     forAll(this->T_, celli)
     {
@@ -111,7 +111,7 @@ Foam::tmp<Foam::volScalarField> Foam::Knudsen::DK() const
     forAll(this->T_.boundaryField(), patchi)
     {
         const fvPatchScalarField& pT = this->T_.boundaryField()[patchi];
-        fvPatchScalarField& pDk = dk.boundaryField()[patchi];
+        fvPatchScalarField& pDk = dk.boundaryFieldRef()[patchi];
 
         forAll(pT, facei)
         {

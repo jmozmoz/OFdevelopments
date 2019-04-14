@@ -39,8 +39,9 @@ SourceFiles
 
 #include "fvc.H"
 
-#include "psiChemistryModel.H"
-#include "turbulenceModel.H"
+//#include "psiChemistryModel.H"
+//#include "turbulenceModel.H"
+#include "turbulentFluidThermoModel.H"
 #include "diffusivityModel.H"
 #include "multiComponentMixture.H"
 #include "porosityModelList.H"
@@ -50,7 +51,7 @@ SourceFiles
 
 namespace Foam
 {
-  
+
 /*---------------------------------------------------------------------------*\
                     Class multiSpeciesTransportModel Declaration
 \*---------------------------------------------------------------------------*/
@@ -60,9 +61,9 @@ class multiSpeciesTransportModel
 
     public IOdictionary
 {
-    
-protected:  
-  
+
+protected:
+
     // Protected data
 
         //- Mesh
@@ -93,7 +94,7 @@ protected:
         //- Species rates [kg/m^3/s]
         PtrList<volScalarField> Sy_;
 
-        //- Diffusivity models 
+        //- Diffusivity models
         autoPtr<diffusivityModel> DijModel_;
 
         //- Multispecies diffusion coefficients
@@ -102,11 +103,13 @@ protected:
         //- Costruct molar fraction fields
         void updateMolarFractions();
 
+        const surfaceScalarField& phi_;
+
 
 private:
-  
+
     // Private member functions
-      
+
         //- Disallow copy construct
         multiSpeciesTransportModel(const multiSpeciesTransportModel&);
 
@@ -116,7 +119,7 @@ private:
         tmp<Foam::volScalarField> RR
         (
             const word Yname,
-            const psiChemistryModel& chemistry,
+//            const psiReactionThermo& chemistry,
             const label i
         ) const;
 
@@ -129,13 +132,13 @@ private:
 
 
 public:
- 
+
     //- Runtime type information
     TypeName("multiSpeciesTransportModel");
 
-      
+
     // Declare run-time constructor selection table
-       
+
 #ifndef SWIG
     declareRunTimeSelectionTable
     (
@@ -144,31 +147,34 @@ public:
         fvMesh,
         (
             psiReactionThermo& thermo,
-            const compressible::turbulenceModel& turbulence
+            const compressible::turbulenceModel& turbulence,
+            const surfaceScalarField& phi
         ),
-        (thermo, turbulence)
+        (thermo, turbulence, phi)
     );
 #endif
-  
 
-    // Constructors	  
+
+    // Constructors
 
         //- Construct from components
         multiSpeciesTransportModel
         (
             psiReactionThermo& thermo,
-            const compressible::turbulenceModel& turbulence
+            const compressible::turbulenceModel& turbulence,
+            const surfaceScalarField& phi
         );
 
 
-    // Selectors	  
-  
+    // Selectors
+
         //- Return a reference to the selected multispecies transport model
 
         static autoPtr<multiSpeciesTransportModel> New
         (
             psiReactionThermo& thermo,
-            const compressible::turbulenceModel& turbulence
+            const compressible::turbulenceModel& turbulence,
+            const surfaceScalarField& phi
         );
 
 
@@ -180,14 +186,14 @@ public:
 
     // Member Functions
 
-        // Access   
-           
+        // Access
+
             //- Return the const binary diffusion coefficient field
             inline const volScalarField& Dij(label i, label j) const;
 
             //- Return the porous zones
             inline porosityModelList& pZones();
-            
+
             //- Return the table of species
             inline const speciesTable& species() const;
 
@@ -207,18 +213,18 @@ public:
         //- Sorce term in hentalpy equation due to diffusive fluxes
         tmp<volScalarField> multiSpeciesHeatSource();
 
-        //- Solve the mass transport equantions without reactions
+        //- Solve the mass transport equations without reactions
         virtual scalar correct
         (
             multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
         ) = 0;
 
-        //- Solve the mass transport equantions with reactions
+        //- Solve the mass transport equations with reactions
         scalar correct
         (
             const PtrList<volScalarField>& Y,
             const volScalarField& kappa,
-            const psiChemistryModel& chemistry,
+//            const psiReactionThermo& chemistry,
             multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
         );
 

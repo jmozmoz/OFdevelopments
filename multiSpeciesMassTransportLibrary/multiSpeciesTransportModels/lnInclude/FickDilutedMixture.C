@@ -1,1 +1,0 @@
-../FickDilutedMixture/FickDilutedMixture.C

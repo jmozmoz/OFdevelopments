@@ -30,9 +30,9 @@ License
 
 template<class ThermoType>
 void Foam::MaxwellStefan<ThermoType>::updateCoefficients()
-{     
+{
     DijModel_().update();
-    
+
     const label N = species().size()-1;
 
     forAll(thermo_.composition().Y(0), cellI)
@@ -66,7 +66,7 @@ void Foam::MaxwellStefan<ThermoType>::updateCoefficients()
                 {
                     A[i][j] = x_[i][cellI]
                         * (1/Dij(i,j)[cellI]/W(j) - 1/Dij(i,N)[cellI]/W(N));
-                    
+
                     B[i][j] = x_[i][cellI] * (1/W(j) - 1/W(N));
                 }
             }
@@ -82,7 +82,7 @@ void Foam::MaxwellStefan<ThermoType>::updateCoefficients()
             for(label j=0; j<N; j++)
             {
                 D(i,j)[cellI] = thermo_.rho()()[cellI]*C[i][j];
-                G(i,j)[cellI] = invC[i][j]/thermo_.rho()()[cellI]; 
+                G(i,j)[cellI] = invC[i][j]/thermo_.rho()()[cellI];
             }
         }
     }
@@ -123,8 +123,8 @@ void Foam::MaxwellStefan<ThermoType>::updateCoefficients()
                         A[i][j] = x_[i].boundaryField()[patchI][faceI]
                             * (1/Dij(i,j).boundaryField()[patchI][faceI] / W(j)
                            - 1/Dij(i,N).boundaryField()[patchI][faceI] / W(N));
-                        
-                        B[i][j] = x_[i].boundaryField()[patchI][faceI] 
+
+                        B[i][j] = x_[i].boundaryField()[patchI][faceI]
                             * (1/W(j) - 1/W(N));
                     }
                 }
@@ -133,14 +133,14 @@ void Foam::MaxwellStefan<ThermoType>::updateCoefficients()
             scalarRectangularMatrix invA = SVDinv(A);
             multiply(C,invA, B);
             scalarRectangularMatrix invC = SVDinv(C);
-              
+
             // Prevent spurious numerical oscillations due to the matrix inversion
             for(label i=0; i<N; i++)
             {
                 for(label j=0; j<N; j++)
                 {
-                    D(i,j).boundaryField()[patchI][faceI] = thermo_.rho()().boundaryField()[patchI][faceI] * C[i][j];
-                    G(i,j).boundaryField()[patchI][faceI] = invC[i][j]/thermo_.rho()().boundaryField()[patchI][faceI];
+                    D(i,j).boundaryFieldRef()[patchI][faceI] = thermo_.rho()().boundaryField()[patchI][faceI] * C[i][j];
+                    G(i,j).boundaryFieldRef()[patchI][faceI] = invC[i][j]/thermo_.rho()().boundaryField()[patchI][faceI];
                 }
             }
         }
@@ -156,17 +156,18 @@ Foam::MaxwellStefan<ThermoType>::MaxwellStefan
     // A.Alexiou 2014
     // hsCombustionThermo& thermo,
     psiReactionThermo& thermo,
-    const compressible::turbulenceModel& turbulence
+    const compressible::turbulenceModel& turbulence,
+    const surfaceScalarField& phi
 )
 :
-    multiSpeciesTransportModel(thermo, turbulence),
-    
+    multiSpeciesTransportModel(thermo, turbulence, phi),
+
     speciesThermo_
     (
         dynamic_cast<const multiComponentMixture<ThermoType>&>
             (this->thermo_).speciesData()
     )
-{    
+{
     updateMolarFractions();
 
    D_.setSize((species().size()-1)*(species().size()-1));
@@ -212,7 +213,7 @@ Foam::MaxwellStefan<ThermoType>::MaxwellStefan
                 )
             );
         }
-    }    
+    }
 }
 
 
@@ -223,27 +224,27 @@ Foam::scalar Foam::MaxwellStefan<ThermoType>::correct
 (
     multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
 )
-{     
-    updateCoefficients(); 
-   
+{
+    updateCoefficients();
+
     scalar maxResidual = 0;
     scalar eqnResidual = 1;
 
-    volScalarField yt = 0.0 * thermo_.composition().Y(0); 
-    surfaceScalarField nt = turbulence_.phi();
-            
+    volScalarField yt = 0.0 * thermo_.composition().Y(0);
+    surfaceScalarField nt = phi_;
+
     for(label i=0; i<(species().size()-1); i++)
-    {     
+    {
         volScalarField& yi = thermo_.composition().Y(i);
         surfaceScalarField& ni = n_[i];
-          
+
         tmp<fv::convectionScheme<scalar> > mvConvection
         (
             fv::convectionScheme<scalar>::New
             (
                 mesh_,
                 fields,
-                turbulence_.phi(),
+                phi_,
                 mesh_.divScheme("div(phi,Yi_h)")
             )
         );
@@ -256,29 +257,29 @@ Foam::scalar Foam::MaxwellStefan<ThermoType>::correct
         tmp<fvScalarMatrix> yEqn
         (
             fvm::ddt(thermo_.rho(), yi)
-//           + fvm::div(turbulence_.phi(), yi, "div(phi,Yi_h)")
-          + mvConvection->fvmDiv(turbulence_.phi(), yi)
+//           + fvm::div(phi_, yi, "div(phi,Yi_h)")
+          + mvConvection->fvmDiv(phi_, yi)
           - fvm::laplacian(D(i,i), yi, "laplacian(D,Yi)")
           ==
             Sy_[i]
-        );  
+        );
 
         ni *= 0;
-            
+
         for(label j=0; j<(species().size()-1); j++)
         {
             if (j != i)
             {
                 volScalarField& yj = thermo_.composition().Y(j);
 
-                yEqn() -= fvc::laplacian(D(i,j), yj, "laplacian(D,Yi)");
-                        
+                yEqn.ref() -= fvc::laplacian(D(i,j), yj, "laplacian(D,Yi)");
+
                 ni -= fvc::interpolate(D(i,j))
                     * (fvc::interpolate(fvc::grad(yj)) & mesh_.Sf());
             }
         }
 
-        eqnResidual = solve(yEqn(), mesh_.solver("Yi")).initialResidual();
+        eqnResidual = solve(yEqn.ref(), mesh_.solver("Yi")).initialResidual();
         maxResidual = max(eqnResidual, maxResidual);
 
         if (mesh_.relaxField("Yi"))//Mohsen
@@ -294,7 +295,7 @@ Foam::scalar Foam::MaxwellStefan<ThermoType>::correct
         nt -= ni;
         yt += yi;
     }
-   
+
     // Calculate inert species
     volScalarField& yInert = thermo_.composition().Y(inertIndex_);
     yInert = 1 - yt;
@@ -302,7 +303,7 @@ Foam::scalar Foam::MaxwellStefan<ThermoType>::correct
     {
         forAll(yInert.boundaryField()[boundaryI], faceI)
         {
-            yInert.boundaryField()[boundaryI][faceI] = 1- yt.boundaryField()[boundaryI][faceI];
+            yInert.boundaryFieldRef()[boundaryI][faceI] = 1- yt.boundaryField()[boundaryI][faceI];
         }
     }
     yInert.max(0.0);
@@ -310,8 +311,8 @@ Foam::scalar Foam::MaxwellStefan<ThermoType>::correct
 
     updateMolarFractions();
 
-    return maxResidual;    
-} 
+    return maxResidual;
+}
 
 
 template<class ThermoType>
