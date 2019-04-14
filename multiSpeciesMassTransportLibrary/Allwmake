@@ -1,0 +1,9 @@
+#!/bin/bash
+set -x
+
+
+
+wmake libso diffusivityModels
+wmake libso multiSpeciesTransportModels
+
+# ----------------------------------------------------------------- end-of-file
