@@ -1,0 +1,109 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         Euler;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    grad(p)         Gauss linear;
+}
+
+divSchemes
+{
+    default         none;
+    div(phi,U)      Gauss upwind;
+    div(phi,Yi_h)   Gauss upwind;
+    div(phid,p)     Gauss upwind;
+    div(phiU,p)     Gauss upwind;
+    div(phi,K)      Gauss linear;
+    div(phi,hs)     Gauss upwind;
+    div(phi,k)      Gauss upwind;
+    div(phi,epsilon) Gauss upwind;
+    div(U)          Gauss linear;
+    div((muEff*dev2(T(grad(U))))) Gauss linear;
+    div(ji,hi) Gauss linear;
+    div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
+}
+
+//divSchemes
+//{
+//    default         none;
+//
+//    div(phi,U)      Gauss limitedLinearV 1;
+//    div(phi,Yi_h)   Gauss limitedLinear01 1;
+//    div(phi,hs)     Gauss limitedLinear 1;
+//    div(phiU,p)     Gauss limitedLinear 1;
+//    div(phid,p)     Gauss limitedLinear 1;
+//    div(phi,epsilon) Gauss limitedLinear 1;
+//    div(phi,k) Gauss limitedLinear 1;
+//    div((muEff*dev2(grad(U).T()))) Gauss linear;
+//    div(ji,hi) Gauss linear;
+//}
+
+laplacianSchemes
+{
+    default         		Gauss linear orthogonal;
+    laplacian(muEff,U) 		Gauss linear orthogonal;
+    laplacian(mut,U) 		Gauss linear orthogonal;
+    laplacian(DkEff,k) 		Gauss linear orthogonal;
+    laplacian(DepsilonEff,epsilon) Gauss linear orthogonal;
+    laplacian(DREff,R) 		Gauss linear orthogonal;
+    laplacian((rho*(1|A(U))),p) Gauss linear orthogonal;
+    laplacian(alphaEff,hs) 	Gauss linear orthogonal;
+}
+
+//laplacianSchemes
+//{
+//    default         Gauss linear uncorrected;
+//    laplacian(muEff,U) Gauss linear uncorrected;
+//    laplacian(mut,U) Gauss linear uncorrected;
+//    laplacian(DkEff,k) Gauss linear uncorrected;
+//    laplacian(DepsilonEff,epsilon) Gauss linear uncorrected;
+//    laplacian((rho*(1|A(U))),p) Gauss linear uncorrected;
+//    laplacian(alphaEff,hs) Gauss linear uncorrected;
+//}
+
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         orthogonal;
+}
+
+fluxRequired
+{
+    default         yes;
+    p               ;
+}
+
+fluxRequired
+{
+    default         yes;
+    Yi_h               ;
+}
+
+
+
+// ************************************************************************* //

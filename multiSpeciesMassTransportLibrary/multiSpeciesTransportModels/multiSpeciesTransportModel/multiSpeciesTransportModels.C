@@ -55,17 +55,17 @@ makeMultiSpeciesTransportModel(MaxwellStefan, gasHThermoPhysics);
 
 makeMultiSpeciesTransportModel(Bosanquet, gasHThermoPhysics);
 
-//makeMultiSpeciesTransportModel(Fick, gasThermoPhysics);
+makeMultiSpeciesTransportModel(Fick, constGasHThermoPhysics);
 
-//makeMultiSpeciesTransportModel(FickDilutedMixture, gasThermoPhysics);
+makeMultiSpeciesTransportModel(FickDilutedMixture, constGasHThermoPhysics);
 
-//makeMultiSpeciesTransportModel(SchmidtNumber, gasThermoPhysics);
+makeMultiSpeciesTransportModel(SchmidtNumber, constGasHThermoPhysics);
 
-//makeMultiSpeciesTransportModel(LewisNumber, gasThermoPhysics);
+makeMultiSpeciesTransportModel(LewisNumber, constGasHThermoPhysics);
 
-//makeMultiSpeciesTransportModel(MaxwellStefan, gasThermoPhysics);
+makeMultiSpeciesTransportModel(MaxwellStefan, constGasHThermoPhysics);
 
-//makeMultiSpeciesTransportModel(Bosanquet, gasThermoPhysics);
+makeMultiSpeciesTransportModel(Bosanquet, constGasHThermoPhysics);
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
