@@ -13,13 +13,15 @@
                 );
 
     hsEqn.relax();
+
+    fvOptions.constrain(hsEqn);
+
     hsEqn.solve();
+    
+    fvOptions.correct(hs);
 
     thermo.correct();
 
-    // A.Alexiou 2015 - Debugging
-    //Info << "Check T" << thermo.T();
-
-    Info<< "T gas min/max   = " << min(T).value() << ", "
-        << max(T).value() << endl;
+    Info<< "min/max(T) = "
+        << min(T).value() << ", " << max(T).value() << endl;
 }

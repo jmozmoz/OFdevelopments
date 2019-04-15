@@ -10,9 +10,4 @@ tmp<fv::convectionScheme<scalar> > mvConvection
             );
 
 
-// A.Alexiou 2015
-// mstm().correct(kappa, chemistry, fields); // OF 2.1
-// ------------------------------------------------------------------------- //
-// A.Alexiou 2015
 mstm().correct(Y, kappa, /*chemistry,*/ fields); // OF 2.3
-// ------------------------------------------------------------------------- //
