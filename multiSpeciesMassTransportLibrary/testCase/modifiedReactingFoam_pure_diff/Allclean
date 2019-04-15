@@ -10,3 +10,4 @@ then
     rm -r VTK
 fi
 
+rm -rf 0
