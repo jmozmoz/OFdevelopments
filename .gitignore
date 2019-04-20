@@ -1,6 +1,3 @@
-multiSpeciesMassTransportLibrary/diffusivityModels/Make/linux64GccDPInt32Opt/
-multiSpeciesMassTransportLibrary/diffusivityModels/lnInclude/
-multiSpeciesMassTransportLibrary/modifiedReactingFoam/Make/linux64GccDPInt32Opt/
-multiSpeciesMassTransportLibrary/multiSpeciesTransportModels/Make/linux64GccDPInt32Opt/
-multiSpeciesMassTransportLibrary/multiSpeciesTransportModels/lnInclude/
+linux64GccDPInt32Opt/
+lnInclude/
 
