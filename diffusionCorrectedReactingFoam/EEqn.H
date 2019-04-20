@@ -18,10 +18,20 @@
       - fvm::laplacian(turbulence->alphaEff(), he)
      ==
         Qdot
-      - fvc::laplacian(turbulence->alphaEff()*T,
-             CpPre)
       + fvOptions(rho, he)
     );
+
+    /* Corrections according to presentation of S. Kelm et al.
+     * Open Source CFD Modeling of Containment Transport and Mixing Processes
+     * Development and First Validation of ‘containmentFOAM’
+     * International CFD Network Meeting, GRS Garching, March 19th 2019
+     */
+
+    // correct -fvm::laplacian(turbulence->alphaEff(), he)
+    // = -\nabla (\lapha_{eff} \nabla h)
+    // to only include diffusive heat conduction due to temperature
+    // gradient: -\nabla (\lambda_{eff} \nabla T)
+    EEqn += fvc::laplacian(turbulence->alphaEff()*T, CpPre);
 
     forAll(Y, i)
     {
@@ -42,6 +52,7 @@
             hs[cellI] = composition.Hs(i, p[cellI], T[cellI]);
         }
 
+        // correct energy to be consistent with species diffusion
         EEqn -= fvc::laplacian(muEffPre*hs, Y[i]);
     }
 
@@ -50,10 +61,6 @@
     fvOptions.constrain(EEqn);
 
     EEqn.solve();
-
-    Info<< "he2: " << he << endl;
-    volScalarField tmp(composition.Hs(0, 1e5, 300)*Y[0] + composition.Hs(1, 1e5, 300)*Y[1]);
-    Info<< "hx: " << tmp << endl;
 
     fvOptions.correct(he);
 
