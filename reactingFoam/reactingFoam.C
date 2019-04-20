@@ -87,20 +87,13 @@ int main(int argc, char *argv[])
 
         #include "rhoEqn.H"
 
-        Info<<"Y["<<inertIndex<<"]:     "<< Y[inertIndex] << endl;
-        Y[inertIndex].storeOldTime();
-        Info<<"Y["<<inertIndex<<"].old: "<< Y[inertIndex].oldTime() << endl;
-        volScalarField rhoPre(thermo.rho());
-
-
         while (pimple.loop())
         {
-//#include "rhoEqn.H"
+            #include "rhoEqn.H"
             #include "UEqn.H"
-            volScalarField CpPre(thermo.Cp());
             volScalarField muEffPre(turbulence->muEff());
+            volScalarField CpPre(thermo.Cp());
             #include "YEqn.H"
-//#include "rhoEqn.H"
             #include "EEqn.H"
 
             // --- Pressure corrector loop
