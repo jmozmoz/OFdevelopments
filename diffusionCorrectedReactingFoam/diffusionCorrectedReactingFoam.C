@@ -91,8 +91,6 @@ int main(int argc, char *argv[])
         {
             #include "rhoEqn.H"
             #include "UEqn.H"
-            volScalarField muEffPre(turbulence->muEff());
-            volScalarField CpPre(thermo.Cp());
             #include "YEqn.H"
             #include "EEqn.H"
 

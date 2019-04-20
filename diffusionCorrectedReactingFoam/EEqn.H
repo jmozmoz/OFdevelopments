@@ -31,7 +31,7 @@
     // = -\nabla (\lapha_{eff} \nabla h)
     // to only include diffusive heat conduction due to temperature
     // gradient: -\nabla (\lambda_{eff} \nabla T)
-    EEqn += fvc::laplacian(turbulence->alphaEff()*T, CpPre);
+    EEqn += fvc::laplacian(turbulence->alphaEff()*T, thermo.Cp());
 
     forAll(Y, i)
     {
@@ -53,7 +53,7 @@
         }
 
         // correct energy to be consistent with species diffusion
-        EEqn -= fvc::laplacian(muEffPre*hs, Y[i]);
+        EEqn -= fvc::laplacian(turbulence->muEff()*hs, Y[i]);
     }
 
     EEqn.relax();
