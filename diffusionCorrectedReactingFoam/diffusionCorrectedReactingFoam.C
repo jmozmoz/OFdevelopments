@@ -52,8 +52,8 @@ int main(int argc, char *argv[])
     #include "createControl.H"
     #include "createTimeControls.H"
     #include "initContinuityErrs.H"
-    #include "../diffusionCorrectedReactingFoam/createFields.H"
-    #include "../diffusionCorrectedReactingFoam/createFieldRefs.H"
+    #include "createFields.H"
+    #include "createFieldRefs.H"
 
     turbulence->validate();
 
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
         if (LTS)
         {
-            #include "../diffusionCorrectedReactingFoam/setRDeltaT.H"
+            #include "setRDeltaT.H"
         }
         else
         {
@@ -90,22 +90,22 @@ int main(int argc, char *argv[])
         while (pimple.loop())
         {
             #include "rhoEqn.H"
-            #include "../diffusionCorrectedReactingFoam/UEqn.H"
+            #include "UEqn.H"
             volScalarField muEffPre(turbulence->muEff());
             volScalarField CpPre(thermo.Cp());
-            #include "../diffusionCorrectedReactingFoam/YEqn.H"
-            #include "../diffusionCorrectedReactingFoam/EEqn.H"
+            #include "YEqn.H"
+            #include "EEqn.H"
 
             // --- Pressure corrector loop
             while (pimple.correct())
             {
                 if (pimple.consistent())
                 {
-                    #include "../diffusionCorrectedReactingFoam/pcEqn.H"
+                    #include "pcEqn.H"
                 }
                 else
                 {
-                    #include "../diffusionCorrectedReactingFoam/pEqn.H"
+                    #include "pEqn.H"
                 }
             }
 
