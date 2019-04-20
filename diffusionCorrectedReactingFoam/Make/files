@@ -1,0 +1,3 @@
+diffusionCorrectedReactingFoam.C
+
+EXE = $(FOAM_USER?APPBIN)/diffusionCorrectedReactingFoam

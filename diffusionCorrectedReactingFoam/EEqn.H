@@ -62,4 +62,3 @@
     Info<< "min/max(T) = "
         << min(T).value() << ", " << max(T).value() << endl;
 }
-

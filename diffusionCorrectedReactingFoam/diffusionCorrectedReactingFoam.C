@@ -22,7 +22,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    reactingFoam
+    diffusionCorrectedReactingFoam
 
 Description
     Solver for combustion with chemical reactions.
@@ -52,8 +52,8 @@ int main(int argc, char *argv[])
     #include "createControl.H"
     #include "createTimeControls.H"
     #include "initContinuityErrs.H"
-    #include "createFields.H"
-    #include "createFieldRefs.H"
+    #include "../diffusionCorrectedReactingFoam/createFields.H"
+    #include "../diffusionCorrectedReactingFoam/createFieldRefs.H"
 
     turbulence->validate();
 
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
         if (LTS)
         {
-            #include "setRDeltaT.H"
+            #include "../diffusionCorrectedReactingFoam/setRDeltaT.H"
         }
         else
         {
@@ -90,22 +90,22 @@ int main(int argc, char *argv[])
         while (pimple.loop())
         {
             #include "rhoEqn.H"
-            #include "UEqn.H"
+            #include "../diffusionCorrectedReactingFoam/UEqn.H"
             volScalarField muEffPre(turbulence->muEff());
             volScalarField CpPre(thermo.Cp());
-            #include "YEqn.H"
-            #include "EEqn.H"
+            #include "../diffusionCorrectedReactingFoam/YEqn.H"
+            #include "../diffusionCorrectedReactingFoam/EEqn.H"
 
             // --- Pressure corrector loop
             while (pimple.correct())
             {
                 if (pimple.consistent())
                 {
-                    #include "pcEqn.H"
+                    #include "../diffusionCorrectedReactingFoam/pcEqn.H"
                 }
                 else
                 {
-                    #include "pEqn.H"
+                    #include "../diffusionCorrectedReactingFoam/pEqn.H"
                 }
             }
 
