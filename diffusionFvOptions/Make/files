@@ -1,0 +1,5 @@
+/* Sources */
+
+diffusionSource.C
+
+LIB = $(FOAM_USER_LIBBIN)/libdiffusionFvOptions
