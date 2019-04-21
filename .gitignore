@@ -1,3 +1,6 @@
 linux64GccDPInt32Opt/
 lnInclude/
 
+/.cproject
+/.project
+/.settings/
