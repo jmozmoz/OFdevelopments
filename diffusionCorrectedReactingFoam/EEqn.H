@@ -52,6 +52,23 @@
             hs[cellI] = composition.Hs(i, p[cellI], T[cellI]);
         }
 
+        // the face values must be set, too. Otherwise diffusion
+        // will be calcualted correctly, if fixed values are set
+        // on boundaries
+        volScalarField::Boundary& hsBf = hs.boundaryFieldRef();
+
+        forAll(hsBf, patchi)
+        {
+            scalarField& hsPatch = hsBf[patchi];
+            const scalarField& pp = p.boundaryField()[patchi];
+            const scalarField& Tp = T.boundaryField()[patchi];
+
+            forAll(hsPatch, facei)
+            {
+                hsPatch[facei] = composition.Hs(i, pp[facei], Tp[facei]);
+            }
+        }
+
         // correct energy to be consistent with species diffusion
         EEqn -= fvc::laplacian(turbulence->muEff()*hs, Y[i]);
     }
