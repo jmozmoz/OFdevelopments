@@ -186,6 +186,25 @@ void Foam::fv::diffusionSource::addSup
             {
                 hs[cellI] = composition_.Hs(i, p[cellI], thermo_.T()[cellI]);
             }
+
+            // the face values must be set, too. Otherwise diffusion
+            // will be calculated correctly, if fixed values are set
+            // on boundaries
+            volScalarField::Boundary& hsBf = hs.boundaryFieldRef();
+
+            forAll(hsBf, patchi)
+            {
+                scalarField& hsPatch = hsBf[patchi];
+                const scalarField& pp = p.boundaryField()[patchi];
+                const scalarField& Tp = thermo_.T().boundaryField()[patchi];
+
+                forAll(hsPatch, facei)
+                {
+                    hsPatch[facei] = composition_.Hs(i, pp[facei], Tp[facei]);
+                }
+            }
+
+
             eqn += fvc::laplacian(turbulence.muEff()*hs, Y_[i]);
         }
     }
