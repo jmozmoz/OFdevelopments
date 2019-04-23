@@ -15,6 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+/*
 thermoType
 {
     type            hePsiThermo;
@@ -25,6 +26,19 @@ thermoType
     equationOfState perfectGas;
     specie          specie;
 }
+*/
+
+thermoType
+{
+    type hePsiThermo;
+    mixture reactingMixture;
+    transport sutherland;
+    thermo janaf;
+    energy sensibleEnthalpy;
+    equationOfState perfectGas;
+    specie specie;
+}
+
 
 inertSpecie N2;
 
@@ -32,7 +46,7 @@ chemistryReader foamChemistryReader;
 
 foamChemistryFile "$FOAM_CASE/constant/reactions";
 
-foamChemistryThermoFile "$FOAM_CASE/constant/thermo.compressibleGas";
+foamChemistryThermoFile "$FOAM_CASE/constant/thermo.compressibleGas.janaf";
 
 
 // ************************************************************************* //

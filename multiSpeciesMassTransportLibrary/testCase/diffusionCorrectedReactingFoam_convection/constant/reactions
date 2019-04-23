@@ -2,6 +2,7 @@ species
 (
     H2O
     N2
+    CO2
 );
 
 reactions

@@ -31,7 +31,20 @@
     // = -\nabla (\lapha_{eff} \nabla h)
     // to only include diffusive heat conduction due to temperature
     // gradient: -\nabla (\lambda_{eff} \nabla T)
-    EEqn += fvc::laplacian(turbulence->alphaEff()*T, thermo.Cp());
+    if (thermoTypeThermo == "hConst")
+    {
+        // if Cp is temperature independent, the product rule can be applied
+        // to \nabla he and the correction is>
+        EEqn += fvc::laplacian(turbulence->alphaEff()*T, thermo.Cp());
+    }
+    else
+    {
+        // if Cp is temperature dpeendent, it is necessary to replace
+        // laplacian alphaEff * he with laplacian lambdaEff T in the
+        // energy equation
+        EEqn -= fvc::laplacian(turbulence->alphaEff()*thermo.Cp(), thermo.T());
+        EEqn += fvc::laplacian(turbulence->alphaEff(), he);
+    }
 
     forAll(Y, i)
     {

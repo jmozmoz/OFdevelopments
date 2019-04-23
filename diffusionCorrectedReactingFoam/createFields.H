@@ -106,5 +106,13 @@ volScalarField Qdot
     dimensionedScalar("Qdot", dimEnergy/dimVolume/dimTime, 0.0)
 );
 
+word thermoTypeThermo
+(
+    mesh.lookupObject<basicThermo>
+    (
+        basicThermo::dictName
+    ).subDict("thermoType").lookup("thermo")
+);
+
 #include "createMRF.H"
 #include "createFvOptions.H"
