@@ -15,7 +15,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     modifiedReactingFoam;
+application     reactingFoam;
 
 startFrom       startTime;
 
@@ -29,10 +29,7 @@ deltaT          1e-6;
 
 writeControl    adjustableRunTime;
 
-// A.Alexiou Debugging
-//writeInterval   0.000005;
 writeInterval   0.005;
-//writeInterval   0.1;
 
 purgeWrite      0;
 
