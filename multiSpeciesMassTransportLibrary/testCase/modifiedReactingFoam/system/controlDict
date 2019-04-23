@@ -17,7 +17,7 @@ FoamFile
 
 application     modifiedReactingFoam;
 
-startFrom       latestTime;
+startFrom       startTime;
 
 startTime       0;
 
@@ -53,5 +53,7 @@ adjustTimeStep  yes;
 maxCo           0.4;
 
 maxDeltaT       1;
+
+libs ("libdiffusionFvOptions.so");
 
 // ************************************************************************* //

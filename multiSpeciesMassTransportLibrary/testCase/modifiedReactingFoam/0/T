@@ -35,15 +35,15 @@ boundaryField
         value           uniform 298;
     }
 
-    inletFuel        
+    inletFuel
     {
          type            fixedValue;
         value           uniform 298;
     }
 
-    outlet          
+    outlet
     {
-          
+
        type            zeroGradient;
     }
 
@@ -64,7 +64,7 @@ boundaryField
     {
         type            symmetryPlane;
     }
-    
+
     frontAndBackPlanes
     {
         type            empty;

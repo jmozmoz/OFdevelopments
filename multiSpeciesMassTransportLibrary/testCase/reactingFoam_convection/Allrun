@@ -1,0 +1,8 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+runApplication blockMesh
+[ ! -d 0 ] && cp -r 0.orig 0
+runApplication $(getApplication)

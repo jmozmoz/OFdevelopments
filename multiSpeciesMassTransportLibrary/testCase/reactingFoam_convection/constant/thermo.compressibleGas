@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      thermo.compressibleGas;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+H2O
+{
+    specie
+    {
+        molWeight       18.0153;
+    }
+    thermodynamics
+    {
+        Cp          1875.0;
+        Hf          0;
+    }
+    transport
+    {
+          mu    9.4e-06;
+          Pr    0.95;
+    }
+}
+
+CO2
+{
+    specie
+    {
+        molWeight       44.01;
+    }
+    thermodynamics
+    {
+        Cp          846;
+        Hf          0;
+    }
+    transport
+    {
+          mu    1.512749E-5;
+          Pr    0.95;
+    }
+}
+
+
+N2
+{
+    specie
+    {
+        molWeight       28.0134;
+    }
+    thermodynamics
+    {
+        Cp          1004.4;
+        Hf          0;
+    }
+    transport
+    {
+        mu      1.831e-5;
+        Pr      0.72;
+    }
+}
+
+
+// ************************************************************************* //

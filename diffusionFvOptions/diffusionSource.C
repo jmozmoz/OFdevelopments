@@ -84,6 +84,16 @@ Foam::fv::diffusionSource::diffusionSource
             (
                 "gammaTmp", dimMass/dimLength/dimTime, 0)
         )
+    ),
+    thermoTypeThermo_
+    (
+        mesh_.lookupObject<basicThermo>
+        (
+            basicThermo::dictName
+        ).subDict
+        (
+            "thermoType"
+        ).lookup("thermo")
     )
 //    curTimeIndex_(-1),
 //    deltaT_(cells_.size(), 0)
@@ -142,7 +152,8 @@ void Foam::fv::diffusionSource::addSup
 
         if (true)
         {
-            const surfaceScalarField& phi = mesh_.lookupObject<surfaceScalarField>("phi");
+            const surfaceScalarField& phi =
+                mesh_.lookupObject<surfaceScalarField>("phi");
 
 
             fvScalarMatrix rhoEqn
@@ -167,8 +178,26 @@ void Foam::fv::diffusionSource::addSup
     }
     else
     {
-
-        eqn -= fvc::laplacian(turbulence.alphaEff()*thermo_.T(), thermo_.Cp());
+        const volScalarField& he = eqn.psi();
+        if (thermoTypeThermo_ == "hConst"){
+            // if Cp is temperature independent, the product rule can be applied
+            // to \nabla he and the correction is>
+            eqn -= fvc::laplacian
+            (
+                turbulence.alphaEff()*thermo_.T(), thermo_.Cp()
+            );
+        }
+        else
+        {
+            // if Cp is temperature dpeendent, it is necessary to replace
+            // laplacian alphaEff * he with laplacian lambdaEff T in the
+            // energy equation
+            eqn += fvc::laplacian
+            (
+                turbulence.alphaEff()*thermo_.Cp(), thermo_.T()
+            );
+            eqn -= fvc::laplacian(turbulence.alphaEff(), he);
+        }
 
         forAll (Y_, i)
         {

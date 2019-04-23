@@ -105,6 +105,7 @@ private:
         const basicSpecieMixture& composition_;
         const PtrList<volScalarField>& Y_;
         tmp<volScalarField> gammaTmp_;
+        const word thermoTypeThermo_;
 
 //
 //        //- Current time index (used for updating)
