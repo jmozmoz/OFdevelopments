@@ -21,15 +21,15 @@ internalField   uniform 1e5;
 
 boundaryField
 {
-    fuel
+    left
     {
         type            zeroGradient;
     }
-    air
+    right
     {
         type            zeroGradient;
     }
-    outlet
+    wall
     {
         type            zeroGradient;
         p0              $internalField;

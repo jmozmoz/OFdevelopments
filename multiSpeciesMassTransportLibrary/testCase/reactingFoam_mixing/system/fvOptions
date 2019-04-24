@@ -9,36 +9,15 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    location    "0";
-    object      p;
+    class       dictionary;
+    object      fvOptions;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [1 -1 -2 0 0 0 0];
-
-internalField   uniform 1e5;
-
-boundaryField
+modifyDiffusion
 {
-    fuel
-    {
-        type            zeroGradient;
-    }
-    air
-    {
-        type            zeroGradient;
-    }
-    outlet
-    {
-        type            zeroGradient;
-        p0              $internalField;
-    }
-    frontAndBack
-    {
-        type            empty;
-    }
+    type       modifyDiffusion;
+    selectionMode all;
 }
 
-
-// ************************************************************************* //
+//************************************************************************** //

@@ -21,17 +21,17 @@ internalField   uniform (0.1 0 0);
 
 boundaryField
 {
-    fuel
+    inlet
     {
         type            fixedValue;
         value           uniform (0.1 0 0);
     }
-    air
+    outlet
     {
         type            zeroGradient;
         value           uniform (0 0 0);
     }
-    outlet
+    wall
     {
         type            slip;
 //        type            fixedValue;

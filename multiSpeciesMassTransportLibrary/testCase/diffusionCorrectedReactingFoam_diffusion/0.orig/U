@@ -9,32 +9,33 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
+    class       volVectorField;
     location    "0";
-    object      alphat;
+    object      U;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [1 -1 -1 0 0 0 0];
+dimensions      [0 1 -1 0 0 0 0];
 
-internalField   uniform 0;
+internalField   uniform (0 0 0);
 
 boundaryField
 {
-    fuel
+    left
     {
-        type            compressible::alphatWallFunction;
-        value           uniform 0;
+        type            fixedValue;
+        value           uniform (0 0 0);
     }
-    air
+    right
     {
-        type            compressible::alphatWallFunction;
-        value           uniform 0;
+        type            fixedValue;
+        value           uniform (0 0 0);
     }
-    outlet
+    wall
     {
-        type            compressible::alphatWallFunction;
-        value           uniform 0;
+        type            slip;
+//        type            fixedValue;
+        value           uniform (0 0 0);
     }
     frontAndBack
     {

@@ -11,27 +11,32 @@ FoamFile
     format      ascii;
     class       volScalarField;
     location    "0";
-    object      T;
+    object      N2;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 1 0 0 0];
+dimensions      [0 0 0 0 0 0 0];
 
-internalField   uniform 300;
+internalField   uniform 1;
 
 boundaryField
 {
-    fuel
+    left
     {
         type            zeroGradient;
+        value           uniform 0.0;
     }
-    air
+    right
     {
         type            zeroGradient;
+        value           uniform 0.0;
     }
-    outlet
+    wall
     {
         type            zeroGradient;
+        inletValue      uniform 0;
+        value           uniform 0;
+
     }
     frontAndBack
     {

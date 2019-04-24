@@ -39,7 +39,7 @@ edges
 
 boundary
 (
-    fuel
+    inlet
     {
         type patch;
         faces
@@ -47,7 +47,7 @@ boundary
             (0 4 7 3)
         );
     }
-    air
+    outlet
     {
         type patch;
         faces
@@ -55,7 +55,7 @@ boundary
             (1 2 6 5)
         );
     }
-    outlet
+    wall
     {
         type patch;
         faces

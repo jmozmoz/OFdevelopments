@@ -76,7 +76,7 @@ solvers
 //                    tolerance       1e-06;
 //                    relTol          0;
 //                }
-            
+
 //                "(U|Yi|hs|k|epsilon)Final"
 //                {
 //                    $Yi;
@@ -110,7 +110,7 @@ solvers
    }
 
    "(Yi|O2|N2|CH4)Final"
-   {	
+   {
 	$Yi;
 	preconditioner DILU;
 	tolerance 1e-06;
@@ -123,9 +123,9 @@ PIMPLE
 {
     transonic       yes;
     nCorrectors     3;
-    nOuterCorrectors 20;
+    nOuterCorrectors 40;;
     momentumPredictor yes;
-    
+
 
     outerCorrectorResidualControl
     {

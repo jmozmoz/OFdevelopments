@@ -23,13 +23,13 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         0.5;
+endTime         10;
 
-deltaT          1e-6;
+deltaT          0.005; // 1e-6;
 
 writeControl    adjustableRunTime;
 
-writeInterval   0.005;
+writeInterval   0.05;
 
 purgeWrite      0;
 
@@ -45,12 +45,86 @@ timePrecision   6;
 
 runTimeModifiable yes;
 
-adjustTimeStep  yes;
+adjustTimeStep  no; // yes;
 
 maxCo           0.4;
 
 maxDeltaT       1;
 
 libs ("libdiffusionFvOptions.so");
+
+functions
+{
+    writeObjects
+    {
+        type            writeObjects;
+        libs            ("libutilityFunctionObjects.so");
+
+        objects         (rho h);
+
+        writeControl    writeTime;
+    }
+
+    energyInletAir
+    {
+        type            surfaceFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+        writeControl    timeStep;
+        writeInterval   1;
+        log             yes;
+        writeTotalArea  no;
+        writeFields     no;
+        regionType      patch;
+        name            inletAir;
+        operation       weightedSum;
+        weightField     phi;
+        fields
+        (
+            h
+        );
+    }
+
+    energyInletFuel
+    {
+        $energyInletAir;
+        name inletFuel;
+    }
+
+    energyOutlet
+    {
+        $energyInletAir;
+        name outlet;
+    }
+
+    massInletAir
+    {
+        type            surfaceFieldValue;
+        libs            ("libfieldFunctionObjects.so");
+        writeControl    timeStep;
+        writeInterval   1;
+        log             yes;
+        writeTotalArea  no;
+        writeFields     no;
+        regionType      patch;
+        name            inletAir;
+        operation       sum;
+        fields
+        (
+            phi
+        );
+    }
+
+    massInletFuel
+    {
+        $massInletAir;
+        name inletFuel;
+    }
+
+    massOutlet
+    {
+        $massInletAir;
+        name outlet;
+    }
+}
 
 // ************************************************************************* //
