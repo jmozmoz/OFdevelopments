@@ -67,7 +67,7 @@ SourceFiles
 #include "cellSetOption.H"
 #include "NamedEnum.H"
 #include "basicThermo.H"
-#include "psiReactionThermo.H"
+#include "basicSpecieMixture.H"
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -85,25 +85,12 @@ class diffusionSource
 :
     public cellSetOption
 {
-public:
-
-//    enum thermoMode
-//    {
-//        mdThermo,
-//        mdLookup
-//    };
-
-//    static const NamedEnum<thermoMode, 2> thermoModeTypeNames_;
-
 
 private:
 
     // Private data
 
         const basicThermo& thermo_;
-        const psiReactionThermo& psiThermo_;
-        const basicSpecieMixture& composition_;
-        const PtrList<volScalarField>& Y_;
         tmp<volScalarField> gammaTmp_;
         const word thermoTypeThermo_;
 
@@ -116,6 +103,9 @@ private:
 
 
     // Private Member Functions
+
+        //- Return the composition
+        const basicSpecieMixture& composition() const;
 
         //- Update the model
         void update(const volScalarField& Cp);
@@ -169,12 +159,6 @@ public:
 
 } // End namespace fv
 } // End namespace Foam
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-#ifdef NoRepository
-    #include "diffusionSourceTemplates.C"
-#endif
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

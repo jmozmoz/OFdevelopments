@@ -30,12 +30,10 @@ License
 #include "fvcGrad.H"
 #include "fvcDiv.H"
 #include "fvmDdt.H"
-#include "uniformDimensionedFields.H"
-#include "zeroGradientFvPatchFields.H"
-#include "extrapolatedCalculatedFvPatchFields.H"
 #include "addToRunTimeSelectionTable.H"
-#include "geometricOneField.H"
 #include "turbulentFluidThermoModel.H"
+#include "psiReactionThermo.H"
+#include "rhoReactionThermo.H"
 
 // * * * * * * * * * * * * * Static Member Functions * * * * * * * * * * * * //
 
@@ -57,6 +55,29 @@ namespace Foam
 
 // * * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * //
 
+// copied from OpenFOAM-6/src/semiPermeableBaffle/derivedFvPatchFields/semiPermeableBaffleVelocity/semiPermeableBaffleVelocityFvPatchVectorField.C
+const Foam::basicSpecieMixture&
+Foam::fv::diffusionSource::composition() const
+{
+    const word& name = basicThermo::dictName;
+
+    if (mesh_.foundObject<psiReactionThermo>(name))
+    {
+        return mesh_.lookupObject<psiReactionThermo>(name).composition();
+    }
+    else if (mesh_.foundObject<rhoReactionThermo>(name))
+    {
+        return mesh_.lookupObject<rhoReactionThermo>(name).composition();
+    }
+    else
+    {
+        FatalErrorInFunction
+            << "Could not find a multi-component thermodynamic model."
+            << exit(FatalError);
+
+        return NullObjectRef<basicSpecieMixture>();
+    }
+}
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -70,11 +91,6 @@ Foam::fv::diffusionSource::diffusionSource
 :
     cellSetOption(sourceName, modelType, dict, mesh),
     thermo_(mesh_.lookupObject<basicThermo>(basicThermo::dictName)),
-    psiThermo_(
-        mesh_.lookupObject<psiReactionThermo>(basicThermo::dictName)
-    ),
-    composition_(psiThermo_.composition()),
-    Y_(composition_.Y()),
     gammaTmp_
     (
         new volScalarField(
@@ -99,22 +115,21 @@ Foam::fv::diffusionSource::diffusionSource
 //    deltaT_(cells_.size(), 0)
 {
 
-
-
     const word inertSpecie(thermo_.lookup("inertSpecie"));
-    const label inertIndex = composition_.species()[inertSpecie];
+    const label inertIndex = composition().species()[inertSpecie];
 
-    fieldNames_.setSize(Y_.size());
+    const PtrList<volScalarField>& Y = composition().Y();
+    fieldNames_.setSize(Y.size());
 
     label j = 0;
-    forAll(Y_, i)
+    forAll(Y, i)
     {
         if (i != inertIndex) {
-            fieldNames_[j++] = Y_[i].name();
+            fieldNames_[j++] = Y[i].name();
         }
     }
 
-    fieldNames_[Y_.size() - 1] = thermo_.he().name();
+    fieldNames_[Y.size() - 1] = thermo_.he().name();
 
     Info<<"Field names: " << fieldNames_ << endl;
 
@@ -199,7 +214,9 @@ void Foam::fv::diffusionSource::addSup
             eqn -= fvc::laplacian(turbulence.alphaEff(), he);
         }
 
-        forAll (Y_, i)
+        const PtrList<volScalarField>& Y = composition().Y();
+
+        forAll (Y, i)
         {
             tmp<volScalarField> hsTmp
             (
@@ -211,9 +228,9 @@ void Foam::fv::diffusionSource::addSup
             );
             volScalarField& hs = hsTmp.ref();
             const volScalarField& p = mesh_.lookupObject<volScalarField>("p");
-            forAll(Y_[i], cellI)
+            forAll(Y[i], cellI)
             {
-                hs[cellI] = composition_.Hs(i, p[cellI], thermo_.T()[cellI]);
+                hs[cellI] = composition().Hs(i, p[cellI], thermo_.T()[cellI]);
             }
 
             // the face values must be set, too. Otherwise diffusion
@@ -229,12 +246,12 @@ void Foam::fv::diffusionSource::addSup
 
                 forAll(hsPatch, facei)
                 {
-                    hsPatch[facei] = composition_.Hs(i, pp[facei], Tp[facei]);
+                    hsPatch[facei] = composition().Hs(i, pp[facei], Tp[facei]);
                 }
             }
 
 
-            eqn += fvc::laplacian(turbulence.muEff()*hs, Y_[i]);
+            eqn += fvc::laplacian(turbulence.muEff()*hs, Y[i]);
         }
     }
 }
