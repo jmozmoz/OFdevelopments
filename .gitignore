@@ -1,6 +1,6 @@
 linux64GccDPInt32Opt/
 lnInclude/
-
+.ipynb_checkpoints
 /.cproject
 /.project
 /.settings/
