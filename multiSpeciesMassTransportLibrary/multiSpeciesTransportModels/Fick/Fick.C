@@ -123,80 +123,27 @@ Foam::Fick<ThermoType>::Fick
 template<class ThermoType>
 Foam::scalar Foam::Fick<ThermoType>::correct
 (
-    multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
+    fvMatrix<scalar>& yEqn,
+    label fieldNumber
 )
 {
-    updateCoefficients();
-
     scalar maxResidual = 0;
     scalar eqnResidual = 1;
 
-    volScalarField yt = 0.0*thermo_.composition().Y(0);
-    surfaceScalarField nt = phi_;
+    volScalarField& Yi = thermo_.composition().Y(fieldNumber); //yEqn.psi();
 
-    forAll(this->D_, i)
-    {
-        volScalarField& yi = thermo_.composition().Y(i);
-        surfaceScalarField& ni = n_[i];
+    yEqn -= fvm::laplacian(turbulence_.muEff(), Yi);
+    yEqn += fvm::laplacian(D_[fieldNumber], Yi, "laplacian(D,Yi)");
+    yEqn += Sy_[fieldNumber];
 
-        tmp<fv::convectionScheme<scalar> > mvConvection
-        (
-            fv::convectionScheme<scalar>::New
-            (
-                mesh_,
-                fields,
-                phi_,
-                mesh_.divScheme("div(phi,Yi_h)")
-            )
-        );
+//        eqnResidual = yEqn.solve(mesh_.solver("Yi")).initialResidual();
+//        maxResidual = max(eqnResidual, maxResidual);
 
-        if (mesh_.relaxField("Yi"))//Mohsen
-        {
-            yi.storePrevIter();
-        }
+//    ni = yEqn.flux();
 
-        fvScalarMatrix yEqn
-        (
-            fvm::ddt(thermo_.rho(), yi)
-//           + fvm::div(phi_, yi, "div(phi,Yi_h)")
-        + mvConvection->fvmDiv(phi_, yi)
-//          + mvConvection->fvmDiv(phi_, yi)
-          - fvm::laplacian(D_[i],yi, "laplacian(D,Yi)")
-          ==
-            Sy_[i]
-        );
+//    nt -= ni;
 
-        eqnResidual = yEqn.solve(mesh_.solver("Yi")).initialResidual();
-        maxResidual = max(eqnResidual, maxResidual);
-
-        if (mesh_.relaxField("Yi"))//Mohsen
-        {
-            yi.relax(mesh_.fieldRelaxationFactor("Yi"));//Mohsen
-        }
-
-        yi.max(0.0);
-//         yi.min(1.0);
-
-        ni = yEqn.flux();
-
-        nt -= ni;
-        yt += yi;
-    }
-
-    // Calculate inert species
-    volScalarField& yInert = thermo_.composition().Y()[inertIndex_];
-    yInert = 1 - yt;
-    forAll(yInert.boundaryField(), boundaryI)
-    {
-        forAll(yInert.boundaryField()[boundaryI], faceI)
-        {
-            yInert.boundaryFieldRef()[boundaryI][faceI] = 1- yt.boundaryField()[boundaryI][faceI];
-        }
-    }
-    yInert.max(0.0);
-    n_[inertIndex_] = nt;
-
-    updateMolarFractions();
+//    n_[inertIndex_] = nt;
 
     return maxResidual;
 }

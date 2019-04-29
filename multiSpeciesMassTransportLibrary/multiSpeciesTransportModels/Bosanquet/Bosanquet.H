@@ -64,9 +64,6 @@ protected:
 
     // Protected member functions
 
-        //- Update the coefficients of the species equations
-        void updateCoefficients();
-
 public:
 
     //- Runtime type information
@@ -85,6 +82,8 @@ public:
             const surfaceScalarField& phi
         );
 
+        //- Update the coefficients of the species equations
+        void updateCoefficients();
 
     //- Destructor
     virtual ~Bosanquet()

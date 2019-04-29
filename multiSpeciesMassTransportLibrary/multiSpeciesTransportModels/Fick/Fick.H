@@ -66,9 +66,6 @@ protected:
 
     // Protected member functions
 
-        //- Update the coefficients of the species equations
-        virtual void updateCoefficients();
-
 
 public:
 
@@ -113,8 +110,12 @@ public:
         //- Solve the mass transport equantions without reactions
         virtual scalar correct
         (
-            multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
+            fvMatrix<scalar>& eqn,
+            label fieldNumber
         );
+
+        //- Update the coefficients of the species equations
+        virtual void updateCoefficients();
 
         //- Read transportProperties dictionary
         virtual bool read();

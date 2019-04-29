@@ -222,94 +222,29 @@ Foam::MaxwellStefan<ThermoType>::MaxwellStefan
 template<class ThermoType>
 Foam::scalar Foam::MaxwellStefan<ThermoType>::correct
 (
-    multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
+    fvMatrix<scalar>& yEqn,
+    label fieldNumber
 )
 {
-    updateCoefficients();
-
     scalar maxResidual = 0;
-    scalar eqnResidual = 1;
 
-    volScalarField yt = 0.0 * thermo_.composition().Y(0);
-    surfaceScalarField nt = phi_;
+    volScalarField& Yi = thermo_.composition().Y(fieldNumber); //yEqn.psi();
 
-    for(label i=0; i<(species().size()-1); i++)
+    yEqn -= fvm::laplacian(turbulence_.muEff(), Yi);
+    yEqn += fvm::laplacian(D(fieldNumber,fieldNumber), Yi, "laplacian(D,Yi)");
+    yEqn += Sy_[fieldNumber];
+
+    for(label j=0; j<(species().size()-1); j++)
     {
-        volScalarField& yi = thermo_.composition().Y(i);
-        surfaceScalarField& ni = n_[i];
-
-        tmp<fv::convectionScheme<scalar> > mvConvection
-        (
-            fv::convectionScheme<scalar>::New
-            (
-                mesh_,
-                fields,
-                phi_,
-                mesh_.divScheme("div(phi,Yi_h)")
-            )
-        );
-        if (mesh_.relaxField("Yi"))//Mohsen
+        if (j != fieldNumber)
         {
-            yi.storePrevIter();
+            volScalarField& Yj = thermo_.composition().Y(j);
+
+            yEqn += fvc::laplacian(D(fieldNumber,j), Yj, "laplacian(D,Yi)");
+
         }
-
-        //fvScalarMatrix yEqn
-        tmp<fvScalarMatrix> yEqn
-        (
-            fvm::ddt(thermo_.rho(), yi)
-//           + fvm::div(phi_, yi, "div(phi,Yi_h)")
-          + mvConvection->fvmDiv(phi_, yi)
-          - fvm::laplacian(D(i,i), yi, "laplacian(D,Yi)")
-          ==
-            Sy_[i]
-        );
-
-        ni *= 0;
-
-        for(label j=0; j<(species().size()-1); j++)
-        {
-            if (j != i)
-            {
-                volScalarField& yj = thermo_.composition().Y(j);
-
-                yEqn.ref() -= fvc::laplacian(D(i,j), yj, "laplacian(D,Yi)");
-
-                ni -= fvc::interpolate(D(i,j))
-                    * (fvc::interpolate(fvc::grad(yj)) & mesh_.Sf());
-            }
-        }
-
-        eqnResidual = solve(yEqn.ref(), mesh_.solver("Yi")).initialResidual();
-        maxResidual = max(eqnResidual, maxResidual);
-
-        if (mesh_.relaxField("Yi"))//Mohsen
-        {
-	  yi.relax(mesh_.fieldRelaxationFactor("Yi"));//Mohsen
-        }
-
-        yi.max(0.0);
-//         yi.min(1.0);
-
-        ni += yEqn().flux();
-
-        nt -= ni;
-        yt += yi;
     }
 
-    // Calculate inert species
-    volScalarField& yInert = thermo_.composition().Y(inertIndex_);
-    yInert = 1 - yt;
-    forAll(yInert.boundaryField(), boundaryI)
-    {
-        forAll(yInert.boundaryField()[boundaryI], faceI)
-        {
-            yInert.boundaryFieldRef()[boundaryI][faceI] = 1- yt.boundaryField()[boundaryI][faceI];
-        }
-    }
-    yInert.max(0.0);
-    n_[inertIndex_] = nt;
-
-    updateMolarFractions();
 
     return maxResidual;
 }

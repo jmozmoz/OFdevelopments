@@ -241,10 +241,12 @@ Foam::surfaceScalarField Foam::multiSpeciesTransportModel::j
 // Modified function correct for OF 2.3
 Foam::scalar Foam::multiSpeciesTransportModel::correct
 (
+    fvMatrix<scalar>& eqn,
     const PtrList<volScalarField>& Y,
     const volScalarField& kappa,
+    label fieldNumber
 //    const psiReactionThermo& chemistry,
-    multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
+
 )
 {
 
@@ -255,7 +257,7 @@ Foam::scalar Foam::multiSpeciesTransportModel::correct
           Sy_[i] = kappa*RR(Y[i].name(), /* chemistry, */ i); // OF 2.3
     }
 
-    return correct(fields);
+    return correct(eqn, fieldNumber);
 }
 
 

@@ -16,6 +16,8 @@ if (!composition.species().found(inertSpecie))
         << composition.species() << exit(FatalIOError);
 }
 
+const label inertIndex(composition.species()[inertSpecie]);
+
 volScalarField rho
 (
     IOobject
@@ -142,16 +144,6 @@ volScalarField dQ
 );
 
 
-// ------------------------------------------------------------------------- //
-autoPtr<multiSpeciesTransportModel> mstm
-(
-    multiSpeciesTransportModel::New
-    (
-        thermo,
-        turbulence(),
-        phi
-    )
-);
 // ------------------------------------------------------------------------- //
 
 #include "createMRF.H"

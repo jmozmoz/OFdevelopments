@@ -1,4 +1,5 @@
 {
+#if 0
     fvScalarMatrix hsEqn
             (
                 fvm::ddt(rho, hs)
@@ -17,11 +18,10 @@
     fvOptions.constrain(hsEqn);
 
     hsEqn.solve();
-    
+#endif
     fvOptions.correct(hs);
 
-    thermo.correct();
-
+//    thermo.correct();
     Info<< "min/max(T) = "
         << min(T).value() << ", " << max(T).value() << endl;
 }

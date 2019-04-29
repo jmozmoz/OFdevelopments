@@ -1,0 +1,24 @@
+species
+(
+    O2
+    H2O
+    CH4
+    CO2
+    N2
+);
+
+reactions
+{
+/*
+    reaction01
+    {
+    	type 		irreversibleArrheniusReaction;
+    	reaction	"CH4 + 2O2 = CO2 + 2H2O";
+	//Noch ändern!
+        A            5.2e16;
+        beta         0;
+        Ta           14906;
+        //A, b, T from Arhenius equation k =A T exp b exp (-E/RT)
+    }
+*/
+}

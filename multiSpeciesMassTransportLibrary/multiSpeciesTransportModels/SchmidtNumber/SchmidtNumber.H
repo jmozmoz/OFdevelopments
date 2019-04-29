@@ -63,7 +63,7 @@ protected:
     // Protected member functions
 
         //- Update the coefficients of the species equations
-        void updateCoefficients();
+        virtual void updateCoefficients();
 
 
 public:

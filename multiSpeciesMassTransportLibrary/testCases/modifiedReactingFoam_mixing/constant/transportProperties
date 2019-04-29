@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.7.0                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      transportProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// A.Alexiou 2015
+// multispeciesTransportModel SchmidtNumber<gasThermoPhysics>;
+// multispeciesTransportModel SchmidtNumber<gasHThermoPhysics>;
+
+// multispeciesTransportModel LewisNumber<gasThermoPhysics>;
+// multispeciesTransportModel FickDilutedMixture<gasThermoPhysics>;
+multispeciesTransportModel Fick<gasHThermoPhysics>;
+// multispeciesTransportModel MaxwellStefan<gasThermoPhysics>;
+
+binaryDiffusivityModel Fuller;
+
+molarWeight
+{
+  O2   31.9988;
+  H2O  18.0153;
+  CH4  16.0428;
+  CO2  44.01;
+  N2   28.0134;  
+}
+
+Fuller   // Fuller diffusive volume
+{
+  H2    6.12;
+  H2O   13.1;
+  N2    18.5;
+  Air   "Missing Data";
+  O2    16.3;
+  CO    18.0;
+  CO2   26.7;
+  CH4   25.14;
+}
+
+epsilonLJ   // Characteristic Lennard–Jones energy [???]
+{
+  H2    59.7;
+  H2O   809.1;
+  N2    71.4;
+  Air   "Missing Data";
+  O2    106.7;
+  CO    91.7;
+  CO2   195.2;
+  CH4   148.6;
+}
+
+collisionalDiametre	// Diameter of the molecular collision [amstrongs]
+{
+  H2    2.827;
+  H2O   2.641;
+  N2    3.798;
+  Air   "Missing Data";
+  O2    3.467;
+  CO    3.690;
+  CO2   3.941;
+  CH4   3.758;
+}
+
+// ************************************************************************* //

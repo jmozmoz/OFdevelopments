@@ -100,9 +100,6 @@ protected:
         //- Multispecies diffusion coefficients
         PtrList<volScalarField> D_;
 
-        //- Costruct molar fraction fields
-        void updateMolarFractions();
-
         const surfaceScalarField& phi_;
 
 
@@ -209,6 +206,11 @@ public:
             //- Specific enthalpy for a specie given by index and temperature
             virtual scalar hs(label i, label T) const = 0;
 
+            //- Costruct molar fraction fields
+            void updateMolarFractions();
+
+            //- Update the coefficients of the species equations
+            virtual void updateCoefficients() = 0;
 
         //- Sorce term in hentalpy equation due to diffusive fluxes
         tmp<volScalarField> multiSpeciesHeatSource();
@@ -216,16 +218,18 @@ public:
         //- Solve the mass transport equations without reactions
         virtual scalar correct
         (
-            multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
+            fvMatrix<scalar>& eqn,
+            label fieldNumber
         ) = 0;
 
         //- Solve the mass transport equations with reactions
         scalar correct
         (
+            fvMatrix<scalar>& eqn,
             const PtrList<volScalarField>& Y,
             const volScalarField& kappa,
+            label fieldNumber
 //            const psiReactionThermo& chemistry,
-            multivariateSurfaceInterpolationScheme<scalar>::fieldTable& fields
         );
 
         //- Read transportProperties dictionary

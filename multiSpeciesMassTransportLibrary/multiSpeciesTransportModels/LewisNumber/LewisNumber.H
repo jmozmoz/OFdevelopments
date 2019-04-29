@@ -62,8 +62,6 @@ protected:
 
     // Protected member functions
 
-        //- Update the coefficients of the species equations
-        void updateCoefficients();
 
 
 public:
@@ -84,6 +82,8 @@ public:
             const surfaceScalarField& phi
         );
 
+        //- Update the coefficients of the species equations
+        virtual void updateCoefficients();
 
     //- Destructor
     virtual ~LewisNumber()
