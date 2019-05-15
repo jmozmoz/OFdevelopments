@@ -13,11 +13,12 @@ before_install:
 
 install:
     - source /opt/openfoam${OF_VERS}/etc/bashrc
-    - ./Allwmake
+    - wmake diffusionCorrectedReactingFoam
+    - wmake OFdevelopments
 
 before_script:
     - source /opt/openfoam${OF_VERS}/etc/bashrc
 
 script:
-    - wmake diffusionCorrectedReactingFoam
-    - wmake OFdevelopments
+    - cd diffusionCorrectedReactingFoam/testCases/diffusionCorrectedReactingFoam_convection/
+    - ./Allrun
