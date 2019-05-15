@@ -13,8 +13,8 @@ before_install:
 
 install:
     - source /opt/openfoam${OF_VERS}/etc/bashrc
-    - wmake diffusionCorrectedReactingFoam
-    - wmake OFdevelopments
+    - wmake diffusionCorrectedReactingFoam -j
+    - wmake diffusionFvOptions -j
 
 before_script:
     - source /opt/openfoam${OF_VERS}/etc/bashrc
