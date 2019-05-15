@@ -15,10 +15,38 @@ install:
     - source /opt/openfoam${OF_VERS}/etc/bashrc
     - wmake -j diffusionCorrectedReactingFoam
     - wmake -j diffusionFvOptions
-
+    - cd multiSpeciesMassTransportLibrary
+    - ./Allwmake -j
+    - wmake -j modifiedReactingFoam
+    
 before_script:
     - source /opt/openfoam${OF_VERS}/etc/bashrc
 
 script:
-    - cd diffusionCorrectedReactingFoam/testCases/diffusionCorrectedReactingFoam_convection/
+    - cd $TRAVIS_BUILD_DIR/diffusionCorrectedReactingFoam/testCases/diffusionCorrectedReactingFoam_convection/
     - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionCorrectedReactingFoam/testCases/diffusionCorrectedReactingFoam_diffusion/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/reactingFoam_diffusion_hConst/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/reactingFoam_diffusion_janaf/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/reactingFoam_mixing/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/rhoReactingFoam_convection/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/rhoReactingFoam_diffusion_hConst/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/rhoReactingFoam_diffusion_janaf/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/multiSpeciesMassTransportLibrary/testCases/modifiedReactingFoam_pure_diff/
+    - ./Allrun
+    - ls
