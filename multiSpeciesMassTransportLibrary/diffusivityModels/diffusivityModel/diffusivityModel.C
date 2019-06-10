@@ -56,11 +56,11 @@ Foam::diffusivityModel::diffusivityModel
     ),
 
     p_(p),
-    
+
     T_(T),
-    
+
 //     eps_(dic_.lookupOrDefault<scalar>("porosity", 1)),
-// 
+//
 //     tau_(dic_.lookupOrDefault<scalar>("tortuosity", 1)),
 
     eps_
@@ -76,7 +76,7 @@ Foam::diffusivityModel::diffusivityModel
       T.mesh(),
       dimensionedScalar("eps", dimless, 1)
     ),
-    
+
     tau_
     (
       IOobject
@@ -90,36 +90,36 @@ Foam::diffusivityModel::diffusivityModel
       T.mesh(),
       dimensionedScalar("tau", dimless, 1)
     ),
-    
+
     pZones_(pZones),
-    
+
     species_(species)
 {
     DijModels_.setSize(0.5*species.size()*(species.size()+1));
     Dij_.setSize(DijModels_.size());
-    
-    forAll(pZones, zoneI) 
+
+    forAll(pZones, zoneI)
     {
         const labelList& cellZoneIds = pZones[zoneI].cellZoneIDs();
         const scalar& porosity = 1;
-    forAll(cellZoneIds, zoneJ)
+        forAll(cellZoneIds, zoneJ)
         {
             // const labelList& cells = T.mesh().cellZones()[pZones[zoneI].zoneIds()];
             const labelList& cells = T.mesh().cellZones()[cellZoneIds[zoneJ]];
 
             forAll(cells, cellI)
-            {  
+            {
                 eps_[cells[cellI]] = porosity;
         }
     }
  }
-        
+
     forAll(species, i)
     {
         for(label j=i; j < species.size(); j++)
         {
             label k = species.size()*i+j-0.5*i*(i+1);
-            
+
             DijModels_.set
             (
                 k,
@@ -138,18 +138,18 @@ Foam::diffusivityModel::diffusivityModel
                 k,
                 new volScalarField
                 (
-                   eps_/tau_*DijModels_[k].D() 
+                   eps_/tau_*DijModels_[k].D()
                 )
-            );   
+            );
         }
-    } 
+    }
 }
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void Foam::diffusivityModel::update()
-{    
+{
     for(label i=0; i < species_.size(); i++)
     {
         for(label j=i; j < species_.size(); j++)
