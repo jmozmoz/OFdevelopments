@@ -1,0 +1,3 @@
+wallCondensationCoupledMixedFvPatchScalarField.C
+
+LIB = $(FOAM_USER_LIBBIN)/libwallCondensation
