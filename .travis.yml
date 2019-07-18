@@ -17,6 +17,7 @@ install:
     - source /opt/openfoam${OF_VERS}/etc/bashrc
     - wmake -j diffusionCorrectedReactingFoam
     - wmake -j diffusionFvOptions
+    - wmake -j wallCondensationCoupled
     - cd multiSpeciesMassTransportLibrary
     - ./Allwmake -j
     - wmake -j modifiedReactingFoam
@@ -52,3 +53,7 @@ script:
     - cd $TRAVIS_BUILD_DIR/multiSpeciesMassTransportLibrary/testCases/modifiedReactingFoam_pure_diff/
     - ./Allrun
     - ls
+    - cd $TRAVIS_BUILD_DIR/wallCondensationCoupled/testCase/
+    - ./Allrun
+    - ls
+    
