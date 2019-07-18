@@ -28,21 +28,14 @@ boundaryField
         type            zeroGradient;
         value           $internalField;
     }
-    "rightSolid_to_.*Air"
+    "rightSolid_to_air"
     {
-        type            compressible::turbulentTemperatureRadCoupledMixed;
+        type            compressible::wallCondensationCoupledMixed;
         value           $internalField;
         Tnbr            T;
         kappaMethod     solidThermo;
         qrNbr           qr;
         qr              none;
-    }
-    rightSolid_to_heater
-    {
-        type            compressible::turbulentTemperatureCoupledBaffleMixed;
-        value           $internalField;
-        Tnbr            T;
-        kappaMethod     solidThermo;
     }
 }
 

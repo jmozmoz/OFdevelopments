@@ -9,15 +9,15 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volVectorField;
-    location    "0/topAir";
-    object      U;
+    class       volScalarField;
+    location    "0/air";
+    object      T;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [ 0 1 -1 0 0 0 0 ];
+dimensions      [ 0 0 0 1 0 0 0 ];
 
-internalField   uniform (0.1 0 0);
+internalField   uniform 500;
 
 boundaryField
 {
@@ -30,16 +30,23 @@ boundaryField
     }
     maxX
     {
-        type            pressureInletOutletVelocity;
+        type            inletOutlet;
         value           $internalField;
+        inletValue      $internalField;
     }
     "(min|max)(Y|Z)"
     {
-        type            noSlip;
+        type            zeroGradient;
+        value           $internalField;
     }
-    "topAir_to_.*"
+    "air_to_.*"
     {
-        type            noSlip;
+        type            compressible::wallCondensationCoupledMixed;
+        value           $internalField;
+        Tnbr            T;
+        kappaMethod     fluidThermo;
+        qrNbr           none;
+        qr              qr;
     }
 }
 

@@ -17,38 +17,6 @@ FoamFile
 
 actions
 (
-    // Heater
-    {
-        name    heaterCellSet;
-        type    cellSet;
-        action  new;
-        source  boxToCell;
-        sourceInfo
-        {
-            box (-0.01001    0 -100 )(0.01001 0.00999 100);
-        }
-    }
-    {
-        name    heaterCellSet;
-        type    cellSet;
-        action  add;
-        source  boxToCell;
-        sourceInfo
-        {
-            box (-0.01001 -100 -0.01001)(0.01001 0.00999 0.01001);
-        }
-    }
-    {
-        name    heater;
-        type    cellZoneSet;
-        action  new;
-        source  setToCellZone;
-        sourceInfo
-        {
-            set heaterCellSet;
-        }
-    }
-
     // leftSolid
     {
         name    leftSolidCellSet;
@@ -93,44 +61,11 @@ actions
         }
     }
 
-    // topAir
+    // air is all the other cells
     {
-        name    topAirCellSet;
+        name    airCellSet;
         type    cellSet;
         action  new;
-        source  boxToCell;
-        sourceInfo
-        {
-            box (-100 0.00999 -100 )(100 100 100);
-        }
-    }
-    {
-        name    topAir;
-        type    cellZoneSet;
-        action  new;
-        source  setToCellZone;
-        sourceInfo
-        {
-            set topAirCellSet;
-        }
-    }
-
-
-    // bottomAir is all the other cells
-    {
-        name    bottomAirCellSet;
-        type    cellSet;
-        action  new;
-        source  cellToCell;
-        sourceInfo
-        {
-            set heaterCellSet;
-        }
-    }
-    {
-        name    bottomAirCellSet;
-        type    cellSet;
-        action  add;
         source  cellToCell;
         sourceInfo
         {
@@ -138,7 +73,7 @@ actions
         }
     }
     {
-        name    bottomAirCellSet;
+        name    airCellSet;
         type    cellSet;
         action  add;
         source  cellToCell;
@@ -148,28 +83,18 @@ actions
         }
     }
     {
-        name    bottomAirCellSet;
-        type    cellSet;
-        action  add;
-        source  cellToCell;
-        sourceInfo
-        {
-            set topAirCellSet;
-        }
-    }
-    {
-        name    bottomAirCellSet;
+        name    airCellSet;
         type    cellSet;
         action  invert;
     }
     {
-        name    bottomAir;
+        name    air;
         type    cellZoneSet;
         action  new;
         source  setToCellZone;
         sourceInfo
         {
-            set bottomAirCellSet;
+            set airCellSet;
         }
     }
 );

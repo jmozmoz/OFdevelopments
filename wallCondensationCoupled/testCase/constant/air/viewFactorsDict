@@ -18,19 +18,13 @@ writeViewFactorMatrix     true;
 writeFacesAgglomeration   true;
 writePatchViewFactors     false;
 
-topAir_to_heater
-{
-    nFacesInCoarsestLevel     24;
-    featureAngle              10;
-}
-
-topAir_to_leftSolid
+air_to_leftSolid
 {
     nFacesInCoarsestLevel     20;
     featureAngle              10;
 }
 
-topAir_to_rightSolid
+air_to_rightSolid
 {
     nFacesInCoarsestLevel     20;
     featureAngle              10;
@@ -42,9 +36,9 @@ minX
     featureAngle              10;
 }
 
-maxY
+minY
 {
-    nFacesInCoarsestLevel     40;
+    nFacesInCoarsestLevel     30;
     featureAngle              10;
 }
 

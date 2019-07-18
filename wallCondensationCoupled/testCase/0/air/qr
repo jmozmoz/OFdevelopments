@@ -10,8 +10,8 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volScalarField;
-    location    "0/topAir";
-    object      G;
+    location    "0/air";
+    object      qr;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -23,16 +23,18 @@ boundaryField
 {
     "(min|max)(X|Y|Z)"
     {
-        type            MarshakRadiation;
+        type            greyDiffusiveRadiationViewFactor;
         value           $internalField;
         emissivityMode  lookup;
+        qro             uniform 0;
         emissivity      uniform 1;
     }
-    "topAir_to_.*"
+    "air_to_.*"
     {
-        type            MarshakRadiation;
+        type            greyDiffusiveRadiationViewFactor;
         value           $internalField;
         emissivityMode  solidRadiation;
+        qro             uniform 0;
         emissivity      uniform 1;
     }
 }

@@ -9,7 +9,7 @@ runApplication topoSet
 runApplication splitMeshRegions -cellZones -overwrite
 
 # Agglomerate patch faces and generate view factors
-for i in bottomAir topAir
+for i in air
 do
     runApplication -s $i faceAgglomerate -region $i -dict \
         constant/viewFactorsDict

@@ -10,30 +10,39 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volScalarField;
-    location    "0/bottomAir";
-    object      IDefault;
+    location    "0/air";
+    object      epsilon;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [ 1 0 -3 0 0 0 0 ];
+dimensions      [ 0 2 -3 0 0 0 0 ];
 
-internalField   uniform 0;
+internalField   uniform 0.01;
 
 boundaryField
 {
-    "(min|max)(X|Y|Z)"
+    #includeEtc "caseDicts/setConstraintTypes"
+
+    minX
     {
-        type            greyDiffusiveRadiation;
+        type            fixedValue;
         value           $internalField;
-        emissivityMode  lookup;
-        emissivity      uniform 1;
     }
-    "bottomAir_to_.*"
+    maxX
     {
-        type            greyDiffusiveRadiation;
+        type            inletOutlet;
         value           $internalField;
-        emissivityMode  solidRadiation;
-        emissivity      uniform 1;
+        inletValue      $internalField;
+    }
+    "(min|max)(Y|Z)"
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
+    }
+    "air_to_.*"
+    {
+        type            epsilonWallFunction;
+        value           $internalField;
     }
 }
 
