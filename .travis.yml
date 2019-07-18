@@ -1,0 +1,54 @@
+sudo: required
+dist: trusty
+language: cpp
+
+env:
+    - OF_VERS=6
+#    - OF_VERS=-dev
+
+before_install:
+    - sudo add-apt-repository http://dl.openfoam.org/ubuntu
+    - sudo add-apt-repository "http://dl.openfoam.org/ubuntu dev"
+    - sudo sh -c "wget -O - http://dl.openfoam.org/gpg.key | apt-key add -"
+    - sudo apt-get update -qq
+    - sudo apt-get install -qq openfoam${OF_VERS}
+
+install:
+    - source /opt/openfoam${OF_VERS}/etc/bashrc
+    - wmake -j diffusionCorrectedReactingFoam
+    - wmake -j diffusionFvOptions
+    - cd multiSpeciesMassTransportLibrary
+    - ./Allwmake -j
+    - wmake -j modifiedReactingFoam
+    
+before_script:
+    - source /opt/openfoam${OF_VERS}/etc/bashrc
+
+script:
+    - cd $TRAVIS_BUILD_DIR/diffusionCorrectedReactingFoam/testCases/diffusionCorrectedReactingFoam_convection/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionCorrectedReactingFoam/testCases/diffusionCorrectedReactingFoam_diffusion/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/reactingFoam_diffusion_hConst/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/reactingFoam_diffusion_janaf/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/reactingFoam_mixing/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/rhoReactingFoam_convection/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/rhoReactingFoam_diffusion_hConst/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/diffusionFvOptions/testCases/rhoReactingFoam_diffusion_janaf/
+    - ./Allrun
+    - ls
+    - cd $TRAVIS_BUILD_DIR/multiSpeciesMassTransportLibrary/testCases/modifiedReactingFoam_pure_diff/
+    - ./Allrun
+    - ls
