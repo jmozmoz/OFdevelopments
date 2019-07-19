@@ -53,7 +53,7 @@ script:
     - cd $TRAVIS_BUILD_DIR/multiSpeciesMassTransportLibrary/testCases/modifiedReactingFoam_pure_diff/
     - ./Allrun
     - ls
-    - cd $TRAVIS_BUILD_DIR/wallCondensationCoupled/testCase/
+    - cd $TRAVIS_BUILD_DIR/wallCondensationCoupled/testCases/simple/
     - ./Allrun
     - ls
     
