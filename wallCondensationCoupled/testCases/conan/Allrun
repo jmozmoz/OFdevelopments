@@ -1,0 +1,31 @@
+#!/bin/sh
+
+cd ${0%/*} || exit 1    # run from this directory
+
+if [ -n "$PBS_O_WORKDIR" ]; then
+    cd $PBS_O_WORKDIR
+    echo "On hosts: "`cat $PBS_NODEFILE`
+fi
+                                                                      
+# Load required modules ...
+#source /etc/profile.d/modules.sh
+#module load compiler/gcc/gcc-6.3.0
+#module add application/OpenFOAM/openfoam-5.x.intel18
+
+# Source OF bashrc ...
+#source /home/software/OpenFOAM/OpenFOAM-5.x.intel18/etc/bashrc
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+#cd /home/stw/data/OpenFoamRuns/ConjugatedHeatTransfer_01/planeWall_Testdatensatz/
+
+#-- Run on single processor
+runApplication `getApplication`
+
+echo
+echo "creating files for paraview post-processing"
+echo
+paraFoam -touchAll
+
+# ----------------------------------------------------------------- end-of-file

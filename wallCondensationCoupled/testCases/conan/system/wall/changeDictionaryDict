@@ -1,0 +1,81 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+boundary
+{
+    bottomAir_bottom
+    {
+        type            patch;
+    }
+    leftLet
+    {
+        type            patch;
+    }
+    rightLet
+    {
+        type            patch;
+    }
+    front
+    {
+        type            empty;
+    }
+    back
+    {
+        type            empty;
+    }
+}
+
+
+T
+    {
+        internalField   uniform 305;
+
+        boundaryField
+        {
+              "bottomAir_bottom"
+            {
+                type		externalWallHeatFluxTemperature;
+                mode		coefficient;
+                h 		uniform 4461.5;
+                Ta		uniform 310.25;
+                kappaMethod	solidThermo;
+                value		$internalField;
+
+            }
+          ".*Let"
+            {
+                type            zeroGradient;
+                value           uniform 330;
+            }
+              "front"
+            {
+                type            empty;
+            }
+              "back"
+            {
+                type            empty;
+            }
+          "wall_to_.*"
+            {
+                type            compressible::wallCondensationCoupledMixed;
+                kappaMethod     solidThermo;
+                kappa           none;
+                value           uniform 330;
+            }
+        }
+    }
+
+// ************************************************************************* //

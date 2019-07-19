@@ -1,0 +1,73 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default Euler;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    default         none;
+
+    div(phi,U)      Gauss linearUpwind grad(U);
+    div(phi,K)      Gauss linear;
+    div(phi,h)      Gauss upwind;
+    div(phi,k)      Gauss upwind;
+    div(phi,epsilon) Gauss upwind;
+    div(phi,omega)  Gauss upwind;
+    div(phi,R)      Gauss upwind;
+    div(phi,Yi_h)   Gauss limitedLinear01 1;
+    div(R)          Gauss linear;
+    div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
+
+    div((he2*grad(AIR))) Gauss linear;
+    div((he1*grad(H2O)))  Gauss linear;
+    div((((hei*LeEff)*(thermo:alpha+(rho*D3)))*grad(H2O))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default        Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+fluxRequired
+{
+    default         no;
+    p_rgh;
+}
+
+wallDist
+{
+method meshWave;
+}
+
+// ************************************************************************* //

@@ -1,0 +1,57 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+wallFluxes
+{
+  type patchIntegrate;
+  writeStartTime no;
+  functionObjectLibs
+  (
+    "libsimpleFunctionObjects.so"
+  );
+  verbose true;
+  fields
+  (
+    H2OMassFlux
+    H2OHeatFlux
+  );
+  patches
+  (
+    topAir_to_wall
+  );
+  region topAir;
+  outputControlMode deltaT;
+  outputDeltaT 0.01;
+}
+
+patchFlows
+{
+  type patchFieldFlow;
+  writeStartTime no;
+  functionObjectLibs
+  (
+    "libsimpleFunctionObjects.so"
+  );
+  verbose true;
+  fields
+  (
+    H2O
+    AIR
+  );
+  patches
+  (
+    leftLet
+    rightLet
+  );
+  region topAir;
+  outputControlMode deltaT;
+  outputDeltaT 0.01;
+}
+
+
+// ************************************************************************* //

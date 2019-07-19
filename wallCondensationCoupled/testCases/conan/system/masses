@@ -1,0 +1,29 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+totalFluidMass
+{
+  type volumeIntegrate;
+  functionObjectLibs
+  (
+    "libsimpleFunctionObjects.so"
+  );
+  verbose true;
+  fields
+  (
+    densityFluidH2O
+    densityFluidAIR
+    rho
+  );
+  region topAir;
+  outputControlMode deltaT;
+  outputDeltaT 0.01;
+}
+
+
+// ************************************************************************* //

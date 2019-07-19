@@ -1,0 +1,146 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    rho
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-6;
+        relTol          0.01;
+    }
+
+    rhoFinal
+    {
+        $rho;
+        tolerance       1e-7;
+        relTol          0;
+    }
+
+ p_rgh
+   {
+        solver          GAMG;
+        smoother        GaussSeidel;
+        tolerance       1e-7;
+        relTol          0.01;
+
+//  	solver			PCG;
+//   	preconditioner		DIC;
+//   	tolerance		1e-6;
+//   	relTol			0.001;
+//	minIter			3;
+   }
+ p_rghFinal
+   {
+  	solver			PCG;
+   	preconditioner		DIC;
+   	tolerance		1e-7;
+   	relTol			0.0;
+   }
+
+    "(U|h|k|R|omega)"
+    {
+        solver           PBiCGStab;
+        preconditioner   DILU;
+        tolerance        1e-7;
+        relTol           0.001;
+	minIter		 3;
+    }
+
+    "(U|h|k|R|omega)Final"
+    {
+        $U;
+        tolerance        1e-7;
+        relTol           0;
+    }
+ Yi
+   {
+  	$hFinal;
+   }
+}
+
+PIMPLE
+{
+	momentumPredictor	yes;
+	nOuterCorrectors	20;
+	nCorrectors		2;
+	nNonOrthogonalCorrectors	0;
+        turbOnFinalIterOnly     false;
+	outerCorrectorResidualControl
+	{
+	  //H2O 
+	  //{
+	//	  tolerance	1e-2;
+	//	  relTol	0.0;
+	  //}
+	  h
+	  {
+		  tolerance	1e-5;
+		  relTol	0.0;
+	  }
+	  Ux
+	  {
+		  tolerance	1e-5;
+		  relTol	0.0;
+	  }
+          Uy
+          {
+                  tolerance     1e-5;
+                  relTol        0.0;
+          }
+	  k
+	  {
+		  tolerance	1e-4;
+	  	  relTol	0.0;
+	  }
+	  omega
+	  {
+		  tolerance	1e-4;
+	  	  relTol	0.0;
+	  }
+	  p_rgh
+	  {
+		  tolerance	5e-5;
+	  	  relTol	0.0;
+	  }
+	}
+
+
+}
+
+relaxationFactors
+{
+ fields
+   {
+	p_rgh			0.7;
+	p_rghFinal		1.0;
+   }
+ equations
+   {
+        "U(x|y|z)"              0.7;
+        "U"                   0.7;
+        "UFinal"              1.0;
+        "U(x|y|z)Final"         1.0;
+        "H2O"                 0.5;
+        "H2OFinal"            1.0;
+        "h"                   0.5;
+	"k|epsilon|G|omega"		0.25;
+	"(k|epsilon|h|G|omega)Final"	1.0;
+   }
+}
+
+// ************************************************************************* //

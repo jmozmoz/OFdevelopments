@@ -1,0 +1,36 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      extrudeProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+constructFrom patch;
+sourceCase "$FOAM_CASE";
+
+sourcePatches (front);
+exposedPatchName back;
+
+extrudeModel plane;
+linearDirectionCoeffs
+{
+    direction    (0 0 1);
+    thickness    0.34;
+}
+
+nLayers 1;
+thickness 0.34;
+
+flipNormals false;
+mergeFaces false;
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

@@ -1,0 +1,51 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+fluidProbes
+{
+    type                probes;
+    region              topAir;
+    functionObjectLibs ("libsampling.so");
+    enabled             true;
+    writeControl        runTime;
+    writeInterval       0.1;
+    name                probes;
+    probeLocations
+    (
+      (0.25 0.005 0.00005)    // Probe 1
+      (1.00 0.005 0.00005)    // Probe 2
+      (1.75 0.005 0.00005)    // Probe 3
+      (1.00 0.170 0.00005)    // Probe 4
+    );
+
+    // Fields to be probed
+    fields (H2O T U);
+}
+
+solidProbes
+{
+    type                probes;
+    region              wall;
+    functionObjectLibs ("libsampling.so");
+    enabled             true;
+    writeControl        runTime;
+    writeInterval       0.1;
+    name                probes;
+    probeLocations
+    (
+      (0.25 -0.005 0.00005)   // Probe 5
+      (1.00 -0.005 0.00005)   // Probe 6
+      (1.75 -0.005 0.00005)   // Probe 7
+      (1.00 -0.0225 0.00005)  // Probe 8
+    );
+
+    // Fields to be probed
+    fields (T);
+}
+
+// ************************************************************************* //

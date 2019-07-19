@@ -1,0 +1,452 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.x                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      changeDictionaryDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+boundary
+{
+    leftLet
+    {
+        type            patch;
+    }
+    rightLet
+    {
+        type            patch;
+    }
+    front
+    {
+        type            empty;
+    }
+    back
+    {
+        type            empty;
+    }
+}
+    AIR
+    {
+        internalField   uniform 0.1551;
+
+        boundaryField
+        {
+            leftLet
+            {
+                type            fixedValue;
+                value           uniform 0.1551;
+            }
+
+            rightLet
+            {
+                type            inletOutlet;
+                value           $internalField;
+                inletValue      uniform 0;
+            }
+
+            topAir_top
+            {
+                type            zeroGradient;
+            }
+
+            front
+            {
+                type            empty;
+            }
+            back
+            {
+                type            empty;
+            }
+
+            "topAir_to_.*"
+            {
+                type            fixedGradient;
+                gradient        uniform 0;
+                value           uniform 0;
+            }
+        }
+    }
+
+    H2O
+    {
+        internalField   uniform 0.8449;
+
+        boundaryField
+        {
+            leftLet
+            {
+                type            fixedValue;
+                value           uniform 0.8449;
+            }
+
+            rightLet
+            {
+                type            inletOutlet;
+                value           $internalField;
+                inletValue      uniform 0;
+            }
+
+            topAir_top
+            {
+                type            zeroGradient;
+            }
+
+            front
+            {
+                type            empty;
+            }
+            back
+            {
+                type            empty;
+            }
+
+            "topAir_to_.*"
+            {
+                type            fixedGradient;
+                gradient        uniform 0;
+                value           uniform 0;
+            }
+        }
+    }
+
+    alphat
+    {
+        internalField   uniform 0;
+
+        boundaryField
+        {
+            leftLet
+            {
+                type            calculated;
+            }
+
+            rightLet
+            {
+                type            calculated;
+            }
+
+            topAir_top
+            {
+                type            calculated;	// compressible::alphatWallFunction;
+            }
+
+            front
+            {
+                type            empty;
+            }
+            back
+            {
+                type            empty;
+            }
+
+            "topAir_to_.*"
+            {
+                type            compressible::alphatWallFunction;
+            }
+        }
+    }
+
+    nut
+    {
+        internalField   uniform 0.022;
+
+        boundaryField
+        {
+            leftLet
+            {
+                type            calculated;
+            }
+
+            rightLet
+            {
+                type            calculated;
+            }
+
+            topAir_top
+            {
+                type            nutkWallFunction;
+            }
+
+            front
+            {
+                type            empty;
+            }
+            back
+            {
+                type            empty;
+            }
+
+            "topAir_to_.*"
+            {
+                type            nutkWallFunction;
+            }
+        }
+    }
+
+    U
+    {
+        internalField   uniform (2.62 0 0);
+
+        boundaryField
+        {
+            rightLet
+            {
+                type            inletOutlet;
+                value           $internalField;
+                inletValue      uniform (0 0 0);
+            }
+
+            topAir_top
+            {
+                type            fixedValue;
+                value           uniform ( 0 0 0 );
+            }
+
+            front
+            {
+                type            empty;
+            }
+            back
+            {
+                type            empty;
+            }
+
+            "topAir_to_.*"
+            {
+                type            fixedValue;
+                value           uniform (0 0 0);
+            }
+            leftLet
+            {
+//                type            fixedValue;
+//                value           uniform ( 2.62 0 0 );
+               type                flowRateInletVelocity;
+               volumetricFlowRate  0.302872;
+               extrapolateProfile  yes;
+               value               uniform (0 0 0);
+            }
+        }
+    }
+
+    T
+    {
+        internalField   uniform 370.15;
+
+        boundaryField
+        {
+            leftLet
+            {
+                type            fixedValue;
+                value           uniform 370.15;
+            }
+
+            rightLet
+            {
+                type            inletOutlet;
+                value           $internalField;
+                inletValue      uniform 0;
+            }
+
+            topAir_top
+            {
+                type            zeroGradient;
+            }
+
+            front
+            {
+                type            empty;
+            }
+            back
+            {
+                type            empty;
+            }
+
+            "topAir_to_.*"
+            {
+                type            compressible::wallCondensationCoupledMixed;;
+                kappaMethod     fluidThermo;
+                kappa           none;
+
+                specie          H2O;
+                carrierMolWeight  28.9 ;//Air from thermophysicalProperties
+
+                thickness       uniform 0;
+                Tvap            273.15;
+
+                liquid
+                {
+                    H2O
+                    {
+                        defaultCoeffs       yes;
+                    }
+                }
+
+                value          uniform 360;
+            }
+        }
+    }
+
+    omega
+    {
+        internalField   uniform 5.0;
+
+        boundaryField
+        {
+            leftLet
+            {
+                type            fixedValue;
+                value		uniform 29.6;
+            }
+
+            rightLet
+            {
+                type            inletOutlet;
+                value           $internalField;
+                inletValue      uniform 0;
+            }
+
+            topAir_top
+            {
+                type            omegaWallFunction;
+            }
+
+            front
+            {
+                type            empty;
+            }
+            back
+            {
+                type            empty;
+            }
+
+            "topAir_to_.*"
+            {
+                type            omegaWallFunction;
+            }
+        }
+    }
+
+    k
+    {
+        internalField   uniform 0.1;
+
+        boundaryField
+        {
+            leftLet
+            {
+                type            fixedValue;
+                value		uniform 0.102966;
+            }
+
+            rightLet
+            {
+                type            inletOutlet;
+                value           $internalField;
+                inletValue      uniform 0;
+            }
+
+            topAir_top
+            {
+                type            kqRWallFunction;
+            }
+
+            front
+            {
+                type            empty;
+            }
+            back
+            {
+                type            empty;
+            }
+
+            "topAir_to_.*"
+            {
+                type            kqRWallFunction;
+            }
+        }
+    }
+
+    p_rgh
+    {
+        internalField   uniform 1e5;
+
+        boundaryField
+        {
+            "leftLet"
+            {
+                type		fixedFluxPressure;
+            }
+            "rightLet"
+            {
+                type            fixedMean;
+                meanValue       100000;
+            }
+            topAir_top
+            {
+                type		fixedFluxPressure;
+            }
+
+            front
+            {
+                type            empty;
+            }
+            back
+            {
+                type            empty;
+            }
+
+            "topAir_to_.*"
+            {
+                type		fixedFluxPressure;
+            }
+        }
+    }
+
+    p
+    {
+        internalField   uniform 1e5;
+
+        boundaryField
+        {
+            leftLet
+            {
+                type            zeroGradient;
+                value           uniform 100000;
+            }
+            rightLet
+            {
+                type            fixedValue;
+                value           uniform 100000;
+            }
+            topAir_top
+            {
+                type		zeroGradient;
+                value           uniform 100000;
+            }
+
+            front
+            {
+                type            empty;
+            }
+            back
+            {
+                type            empty;
+            }
+
+            "topAir_to_.*"
+            {
+                        type            zeroGradient;
+            }
+
+        }
+    }
+
+// ************************************************************************* //
