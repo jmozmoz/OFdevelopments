@@ -52,7 +52,15 @@ wallCondensationCoupledMixedFvPatchScalarField
     qrName_("undefined-qr"),
     thicknessLayers_(0),
     kappaLayers_(0),
-    contactRes_(0)
+    contactRes_(0),
+    specieName_("undefined-specieName"),
+    liquid_(nullptr),
+    liquidDict_(),
+    mass_(0),
+    massOld_(0),
+    Mcomp_(0.0),
+    fluid_(false),
+    thickness_(0.0)
 {
     this->refValue() = 0.0;
     this->refGrad() = 0.0;
@@ -76,7 +84,15 @@ wallCondensationCoupledMixedFvPatchScalarField
     qrName_(psf.qrName_),
     thicknessLayers_(psf.thicknessLayers_),
     kappaLayers_(psf.kappaLayers_),
-    contactRes_(psf.contactRes_)
+    contactRes_(psf.contactRes_),
+    specieName_(psf.specieName_),
+    liquid_(psf.liquid_),
+    liquidDict_(psf.liquidDict_),
+    mass_(psf.mass_),
+    massOld_(psf.massOld_),
+    Mcomp_(psf.Mcomp_),
+    fluid_(psf.fluid_),
+    thickness_(psf.thickness_)
 {}
 
 
@@ -95,7 +111,15 @@ wallCondensationCoupledMixedFvPatchScalarField
     qrName_(dict.lookupOrDefault<word>("qr", "none")),
     thicknessLayers_(0),
     kappaLayers_(0),
-    contactRes_(0.0)
+    contactRes_(0.0),
+    specieName_(dict.lookupOrDefault<word>("specie", "undefined-specieName")),
+    liquid_(nullptr),
+    liquidDict_(),
+    mass_(0.0),
+    massOld_(0.0),
+    Mcomp_(dict.lookupOrDefault<scalar>("carrierMolWeight", 0.0)),
+    fluid_(false),
+    thickness_(0.0)
 {
     if (!isA<mappedPatchBase>(this->patch().patch()))
     {
@@ -108,7 +132,7 @@ wallCondensationCoupledMixedFvPatchScalarField
     }
 
     if (dict.found("thicknessLayers"))
-    {
+     {
         dict.lookup("thicknessLayers") >> thicknessLayers_;
         dict.lookup("kappaLayers") >> kappaLayers_;
 
@@ -139,6 +163,34 @@ wallCondensationCoupledMixedFvPatchScalarField
         refGrad() = 0.0;
         valueFraction() = 1.0;
     }
+
+    if (dict.found("specie"))
+    {
+        fluid_ = true;
+    }
+
+    if (fluid_)
+    {
+        liquidDict_ = dict.subDict("liquid");
+        liquid_ =
+            liquidProperties::New(liquidDict_.subDict(specieName_));
+
+        if (dict.found("thickness"))
+        {
+            scalarField& Tp = *this;
+            const scalarField& magSf = patch().magSf();
+
+            // Assume initially standard pressure for rho calculation
+            scalar pf = 1e5;
+            thickness_ = scalarField("thickness", dict, p.size());
+            forAll(thickness_, i)
+            {
+                mass_[i] =
+                    thickness_[i]*liquid_->rho(pf, Tp[i])*magSf[i];
+                massOld_[i] = mass_[i];
+            }
+        }
+    }
 }
 
 
@@ -156,7 +208,15 @@ wallCondensationCoupledMixedFvPatchScalarField
     qrName_(psf.qrName_),
     thicknessLayers_(psf.thicknessLayers_),
     kappaLayers_(psf.kappaLayers_),
-    contactRes_(psf.contactRes_)
+    contactRes_(psf.contactRes_),
+    specieName_(psf.specieName_),
+    liquid_(psf.liquid_),
+    liquidDict_(psf.liquidDict_),
+    mass_(psf.mass_),
+    massOld_(psf.massOld_),
+    Mcomp_(psf.Mcomp_),
+    fluid_(psf.fluid_),
+    thickness_(psf.thickness_)
 {}
 
 
@@ -207,6 +267,11 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
     scalarField TcNbr(nbrField.patchInternalField());
     mpp.distribute(TcNbr);
 
+    // Fluid Side
+    if (fluid_)
+    {
+
+    }
 
     // Swap to obtain full local values of neighbour K*delta
     scalarField KDeltaNbr;

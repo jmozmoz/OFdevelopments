@@ -78,6 +78,7 @@ SourceFiles
 #include "mixedFvPatchFields.H"
 #include "temperatureCoupledBase.H"
 #include "scalarList.H"
+#include "liquidProperties.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -115,6 +116,29 @@ class wallCondensationCoupledMixedFvPatchScalarField
         //- Total contact resistance
         scalar contactRes_;
 
+        //- Name of the species on which the mass transferred (default H2O)
+        const word specieName_;
+
+        //- Liquid properties
+        autoPtr<liquidProperties> liquid_;
+
+        //- Liquid dictionary
+        dictionary liquidDict_;
+
+        //- Mass accumulated on faces
+        scalarField mass_;
+
+        //- Mass accumulated on faces up to last time step
+        scalarField massOld_;
+
+        //- Average molecular weight for the carrier mixture in the gas phase
+        scalar Mcomp_;
+
+        //- Fluid side
+        bool fluid_;
+
+        //- Thickness field for inert mode
+        scalarField thickness_;
 
 public:
 
