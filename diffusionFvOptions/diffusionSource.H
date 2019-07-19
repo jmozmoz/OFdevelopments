@@ -25,7 +25,7 @@ Class
     Foam::fv::diffusionSource
 
 Description
-    Corrections according to Kelm et al. to account correctly
+    Corrections according to Kumar G et al. to account correctly
     calculate the energy evolution in case of multi-species mixtures
     with different Cp per specimen.
 
@@ -37,10 +37,9 @@ Description
 
     References:
     \verbatim
-        S. Kelm et al. (2019(
-        Open Source CFD Modeling of Containment Transport and Mixing Processes
-        Development and First Validation of ‘containmentFOAM’
-        International CFD Network Meeting, GRS Garching, March 19th 2019
+       V. Kumar G et al.
+       Development and verification of a multi-species gas transport solver
+       OpenFOAM Workshop 2019, Duisburg, Germany
     \endverbatim
 
 Usage

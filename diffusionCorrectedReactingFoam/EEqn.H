@@ -21,10 +21,9 @@
       + fvOptions(rho, he)
     );
 
-    /* Corrections according to presentation of S. Kelm et al.
-     * Open Source CFD Modeling of Containment Transport and Mixing Processes
-     * Development and First Validation of ‘containmentFOAM’
-     * International CFD Network Meeting, GRS Garching, March 19th 2019
+    /* Corrections according to presentation of V. Kumar G et al.
+     * Development and verification of a multi-species gas transport solver
+     * OpenFOAM Workshop 2019, Duisburg, Germany
      */
 
     // correct -fvm::laplacian(turbulence->alphaEff(), he)
