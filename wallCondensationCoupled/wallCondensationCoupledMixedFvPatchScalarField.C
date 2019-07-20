@@ -28,6 +28,7 @@ License
 #include "fvPatchFieldMapper.H"
 #include "volFields.H"
 #include "mappedPatchBase.H"
+#include "rhoReactionThermo.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -61,7 +62,41 @@ wallCondensationCoupledMixedFvPatchScalarField
     Mcomp_(0.0),
     fluid_(false),
     thickness_(patch().size(), Zero),
-    lastTimeStep_(0)
+    lastTimeStep_(0),
+    filmMassSourceFluid_(
+        IOobject
+        (
+            "filmMassSourceFluid",
+            p.boundaryMesh().mesh().time().timeName(),
+            p.boundaryMesh().mesh(),
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        p.boundaryMesh().mesh(),
+        dimensionedScalar
+        (
+            "filmMassSourceFluid",
+            dimDensity/dimTime,
+            Zero
+        )
+    ),
+    filmEnergySourceFluid_(
+        IOobject
+        (
+            "filmEnergySourceFluid",
+            p.boundaryMesh().mesh().time().timeName(),
+            p.boundaryMesh().mesh(),
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        p.boundaryMesh().mesh(),
+        dimensionedScalar
+        (
+            "filmEnergySourceFluid",
+            dimEnergy/dimVolume/dimTime,
+            Zero
+        )
+    )
 {
     this->refValue() = 0.0;
     this->refGrad() = 0.0;
@@ -94,7 +129,9 @@ wallCondensationCoupledMixedFvPatchScalarField
     Mcomp_(psf.Mcomp_),
     fluid_(psf.fluid_),
     thickness_(psf.thickness_, mapper),
-    lastTimeStep_(psf.lastTimeStep_)
+    lastTimeStep_(psf.lastTimeStep_),
+    filmMassSourceFluid_(psf.filmMassSourceFluid_),
+    filmEnergySourceFluid_(psf.filmEnergySourceFluid_)
 {}
 
 
@@ -122,7 +159,41 @@ wallCondensationCoupledMixedFvPatchScalarField
     Mcomp_(dict.lookupOrDefault<scalar>("carrierMolWeight", 0.0)),
     fluid_(false),
     thickness_(patch().size(), Zero),
-    lastTimeStep_(0)
+    lastTimeStep_(0),
+    filmMassSourceFluid_(
+        IOobject
+        (
+            "filmMassSourceFluid",
+            p.boundaryMesh().mesh().time().timeName(),
+            p.boundaryMesh().mesh(),
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        p.boundaryMesh().mesh(),
+        dimensionedScalar
+        (
+            "filmMassSourceFluid",
+            dimDensity/dimTime,
+            Zero
+        )
+    ),
+    filmEnergySourceFluid_(
+        IOobject
+        (
+            "filmEnergySourceFluid",
+            p.boundaryMesh().mesh().time().timeName(),
+            p.boundaryMesh().mesh(),
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        p.boundaryMesh().mesh(),
+        dimensionedScalar
+        (
+            "filmEnergySourceFluid",
+            dimEnergy/dimVolume/dimTime,
+            Zero
+        )
+    )
 {
     if (!isA<mappedPatchBase>(this->patch().patch()))
     {
@@ -222,7 +293,9 @@ wallCondensationCoupledMixedFvPatchScalarField
     Mcomp_(psf.Mcomp_),
     fluid_(psf.fluid_),
     thickness_(psf.thickness_),
-    lastTimeStep_(psf.lastTimeStep_)
+    lastTimeStep_(psf.lastTimeStep_),
+    filmMassSourceFluid_(psf.filmMassSourceFluid_),
+    filmEnergySourceFluid_(psf.filmEnergySourceFluid_)
 {}
 
 
@@ -317,7 +390,10 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
     mpp.distribute(nbrInternalField);
 
     scalarField dm(patch().size(), Zero);
-    scalarField dmhfg(patch().size(), Zero);
+    scalarField hPhaseChange(patch().size(), Zero);
+    scalarField dmhPhaseChange(patch().size(), Zero);
+    scalarField hRemoveMass(patch().size(), Zero);
+    scalarField dmhRemoveMass(patch().size(), Zero);
 
     // Fluid Side
     if (fluid_)
@@ -329,6 +405,18 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             lastTimeStep_= mesh.time().value();
             massOld_ = mass_;
         }
+
+        const rhoReactionThermo& thermo =
+            mesh.lookupObject<rhoReactionThermo>
+            (
+                basicThermo::dictName
+            );
+
+        const basicSpecieMixture& composition = thermo.composition();
+        label specieIndex = composition.species()[specieName_];
+
+
+
 
         const scalarField myDelta(patch().deltaCoeffs());
 
@@ -355,6 +443,9 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             patch().lookupPatchField<volScalarField, scalar>("nut");
 
         const scalarField Yinternal(Ypatch.patchInternalField());
+        const scalarField pInternal(pPatch.patchInternalField());
+
+        const labelList& faceCells = patch().faceCells();
 
         const scalar Sct = 0.9;
         const scalar Sc = 1.0;
@@ -364,6 +455,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             const scalar Tface = Tpatch[faceI];
             const scalar Tcell = Tinternal[faceI];
             const scalar pFace = pPatch[faceI];
+            const scalar pCell = pInternal[faceI];
 
             const scalar muFace = muPatch[faceI];
             const scalar rhoFace = rhoPatch[faceI];
@@ -375,7 +467,8 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             const scalar deltaFace = myDelta[faceI];
 
             cp[faceI] = liquid_->Cp(pFace, Tface);
-            const scalar hfg = liquid_->hl(pFace, Tface);
+            hPhaseChange[faceI] = liquid_->hl(pFace, Tface);
+            hRemoveMass[faceI] = composition.Hs(specieIndex, pCell, Tcell);
 
             // Calculate relative humidity
             const scalar invMwmean =
@@ -411,7 +504,6 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
                 dm[faceI] =
                     gamma*deltaFace
                    *(Ycell - YsatFace)/(1 - YsatFace);
-                dmhfg[faceI] = dm[faceI] * hfg;
             }
 
             liquidRho[faceI] = liquid_->rho(pFace, Tface);
@@ -436,11 +528,25 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
 //            mpCpTp_ = mass_*cp/dt/magSf;
 //
 //            // Heat flux due to change of phase [W/m2]
-//            dmHfg_ = dm*hfg;
+//            dmHfg_ = dm*hPhaseChange;
 
         mass_= massOld_ + dm*dt*magSf;
         mass_ = max(mass_, scalar(0));
 
+        forAll(faceCells, faceI)
+        {
+            const label cellI = faceCells[faceI];
+
+            filmMassSourceFluid_[cellI] =
+               -dm[faceI]
+               *magSf[faceI]
+               /mesh.cellVolumes()[cellI];
+
+            filmEnergySourceFluid_[cellI] =
+               -dm[faceI]*hRemoveMass[faceI]
+               *magSf[faceI]
+               /mesh.cellVolumes()[cellI];
+        }
     }
 
     // Swap to obtain full local values of neighbour K*delta

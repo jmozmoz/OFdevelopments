@@ -44,6 +44,7 @@ Usage
         kappaLayers  | list of thermal conductivites per layer [W/m/K] | no |
         kappaMethod  | inherited from temperatureCoupledBase | inherited |
         kappa        | inherited from temperatureCoupledBase | inherited |
+        TODO: need to add description
     \endtable
 
     Example of the boundary condition specification:
@@ -59,6 +60,7 @@ Usage
         kappaMethod     lookup;
         kappa           kappa;
         value           uniform 300;
+        TODO: need to add description
     }
     \endverbatim
 
@@ -144,6 +146,13 @@ private:
 
         //- Last time step for which mass of fluid film was calculated
         scalar lastTimeStep_;
+
+        //- Mass source term for specie removed from fluid
+        volScalarField filmMassSourceFluid_;
+
+        //- Energy source term for specific energy of specie removed from fluid
+        volScalarField filmEnergySourceFluid_;
+
 
     // Private members
         //- Lookup (or create) a field for output
