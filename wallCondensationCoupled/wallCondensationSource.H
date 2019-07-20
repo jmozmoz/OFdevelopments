@@ -54,6 +54,8 @@ SourceFiles
 #include "cellSetOption.H"
 #include "autoPtr.H"
 #include "interpolation2DTable.H"
+#include "volFields.H"
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -77,6 +79,12 @@ protected:
 
         //- Name of the affected specie
         word specieName_;
+
+        //- Mass source term for specie removed from fluid
+        volScalarField filmMassSourceFluid_;
+
+        //- Energy source term for specific energy of specie removed from fluid
+        volScalarField filmEnergySourceFluid_;
 
 
 private:

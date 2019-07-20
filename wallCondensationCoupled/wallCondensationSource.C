@@ -61,7 +61,42 @@ Foam::fv::wallCondensationSource::wallCondensationSource
 )
 :
     cellSetOption(name, modelType, dict, mesh),
-    specieName_(coeffs_.lookupOrDefault<word>("specie", "none"))
+    specieName_(coeffs_.lookupOrDefault<word>("specie", "none")),
+    filmMassSourceFluid_(
+        IOobject
+        (
+            "filmMassSource" + specieName_,
+            mesh.time().timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar
+        (
+            "filmMassSource" + specieName_,
+            dimDensity/dimTime,
+            Zero
+        )
+    ),
+    filmEnergySourceFluid_(
+        IOobject
+        (
+            "filmEnergySource" + specieName_,
+            mesh.time().timeName(),
+            mesh,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh,
+        dimensionedScalar
+        (
+            "filmEnergySource" + specieName_,
+            dimEnergy/dimVolume/dimTime,
+            Zero
+        )
+    )
+
 {
 
     const basicThermo& thermo =

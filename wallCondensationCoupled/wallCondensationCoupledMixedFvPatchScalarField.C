@@ -30,6 +30,7 @@ License
 #include "mappedPatchBase.H"
 #include "rhoReactionThermo.H"
 
+
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 namespace Foam
@@ -62,41 +63,7 @@ wallCondensationCoupledMixedFvPatchScalarField
     Mcomp_(0.0),
     fluid_(false),
     thickness_(patch().size(), Zero),
-    lastTimeStep_(0),
-    filmMassSourceFluid_(
-        IOobject
-        (
-            "filmMassSourceFluid",
-            p.boundaryMesh().mesh().time().timeName(),
-            p.boundaryMesh().mesh(),
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        p.boundaryMesh().mesh(),
-        dimensionedScalar
-        (
-            "filmMassSourceFluid",
-            dimDensity/dimTime,
-            Zero
-        )
-    ),
-    filmEnergySourceFluid_(
-        IOobject
-        (
-            "filmEnergySourceFluid",
-            p.boundaryMesh().mesh().time().timeName(),
-            p.boundaryMesh().mesh(),
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        p.boundaryMesh().mesh(),
-        dimensionedScalar
-        (
-            "filmEnergySourceFluid",
-            dimEnergy/dimVolume/dimTime,
-            Zero
-        )
-    )
+    lastTimeStep_(0)
 {
     this->refValue() = 0.0;
     this->refGrad() = 0.0;
@@ -129,9 +96,7 @@ wallCondensationCoupledMixedFvPatchScalarField
     Mcomp_(psf.Mcomp_),
     fluid_(psf.fluid_),
     thickness_(psf.thickness_, mapper),
-    lastTimeStep_(psf.lastTimeStep_),
-    filmMassSourceFluid_(psf.filmMassSourceFluid_),
-    filmEnergySourceFluid_(psf.filmEnergySourceFluid_)
+    lastTimeStep_(psf.lastTimeStep_)
 {}
 
 
@@ -159,42 +124,7 @@ wallCondensationCoupledMixedFvPatchScalarField
     Mcomp_(dict.lookupOrDefault<scalar>("carrierMolWeight", 0.0)),
     fluid_(false),
     thickness_(patch().size(), Zero),
-    lastTimeStep_(0),
-    filmMassSourceFluid_(
-        IOobject
-        (
-            "filmMassSourceFluid",
-            p.boundaryMesh().mesh().time().timeName(),
-            p.boundaryMesh().mesh(),
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        p.boundaryMesh().mesh(),
-        dimensionedScalar
-        (
-            "filmMassSourceFluid",
-            dimDensity/dimTime,
-            Zero
-        )
-    ),
-    filmEnergySourceFluid_(
-        IOobject
-        (
-            "filmEnergySourceFluid",
-            p.boundaryMesh().mesh().time().timeName(),
-            p.boundaryMesh().mesh(),
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        p.boundaryMesh().mesh(),
-        dimensionedScalar
-        (
-            "filmEnergySourceFluid",
-            dimEnergy/dimVolume/dimTime,
-            Zero
-        )
-    )
-{
+    lastTimeStep_(0){
     if (!isA<mappedPatchBase>(this->patch().patch()))
     {
         FatalErrorInFunction
@@ -293,9 +223,7 @@ wallCondensationCoupledMixedFvPatchScalarField
     Mcomp_(psf.Mcomp_),
     fluid_(psf.fluid_),
     thickness_(psf.thickness_),
-    lastTimeStep_(psf.lastTimeStep_),
-    filmMassSourceFluid_(psf.filmMassSourceFluid_),
-    filmEnergySourceFluid_(psf.filmEnergySourceFluid_)
+    lastTimeStep_(psf.lastTimeStep_)
 {}
 
 
@@ -415,7 +343,23 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
         const basicSpecieMixture& composition = thermo.composition();
         label specieIndex = composition.species()[specieName_];
 
+        volScalarField & filmMassSource =
+            const_cast<volScalarField &>
+            (
+                mesh.lookupObject<volScalarField>
+                (
+                    "filmMassSource" + specieName_
+                )
+            );
 
+        volScalarField & filmEnergySource =
+            const_cast<volScalarField &>
+            (
+                mesh.lookupObject<volScalarField>
+                (
+                    "filmEnergySource" + specieName_
+                )
+            );
 
 
         const scalarField myDelta(patch().deltaCoeffs());
@@ -537,12 +481,12 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
         {
             const label cellI = faceCells[faceI];
 
-            filmMassSourceFluid_[cellI] =
+            filmMassSource[cellI] =
                -dm[faceI]
                *magSf[faceI]
                /mesh.cellVolumes()[cellI];
 
-            filmEnergySourceFluid_[cellI] =
+            filmEnergySource[cellI] =
                -dm[faceI]*hRemoveMass[faceI]
                *magSf[faceI]
                /mesh.cellVolumes()[cellI];

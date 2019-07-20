@@ -147,13 +147,6 @@ private:
         //- Last time step for which mass of fluid film was calculated
         scalar lastTimeStep_;
 
-        //- Mass source term for specie removed from fluid
-        volScalarField filmMassSourceFluid_;
-
-        //- Energy source term for specific energy of specie removed from fluid
-        volScalarField filmEnergySourceFluid_;
-
-
     // Private members
         //- Lookup (or create) a field for output
         volScalarField& outputScalarField
