@@ -78,6 +78,7 @@ SourceFiles
 #include "mixedFvPatchFields.H"
 #include "temperatureCoupledBase.H"
 #include "scalarList.H"
+#include "volFields.H"
 #include "liquidProperties.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -96,6 +97,7 @@ class wallCondensationCoupledMixedFvPatchScalarField
     public mixedFvPatchScalarField,
     public temperatureCoupledBase
 {
+private:
     // Private data
 
         //- Name of field on the neighbour region
@@ -139,6 +141,19 @@ class wallCondensationCoupledMixedFvPatchScalarField
 
         //- Thickness field for inert mode
         scalarField thickness_;
+
+        //- Last time step for which mass of fluid film was calculated
+        scalar lastTimeStep_;
+
+    // Private members
+        //- Lookup (or create) a field for output
+        volScalarField& outputScalarField
+        (
+            const word& fieldName,
+            const dimensionSet& dimSet,
+            const fvMesh& mesh
+        );
+
 
 public:
 
