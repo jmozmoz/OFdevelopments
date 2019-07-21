@@ -470,7 +470,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             const scalar pCell = pInternal[faceI];
 
             const scalar muFace = muPatch[faceI];
-            const scalar nuCell = 3.45e-5;
+            const scalar nuCell = 2.95e-5;
             const scalar rhoFace = rhoPatch[faceI];
             const scalar rhoCell = rhoInternal[faceI];
             const scalar muCell = nuCell * rhoCell;
