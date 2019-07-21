@@ -388,7 +388,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
 
         const scalarField Yinternal(Ypatch.patchInternalField());
         const scalarField pInternal(pPatch.patchInternalField());
-
+        const scalarField rhoInternal(rhoPatch.patchInternalField());
         const labelList& faceCells = patch().faceCells();
 
         const scalar Sct = 0.9;
@@ -402,7 +402,10 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             const scalar pCell = pInternal[faceI];
 
             const scalar muFace = muPatch[faceI];
+            const scalar nuCell = 3.45e-5;
             const scalar rhoFace = rhoPatch[faceI];
+            const scalar rhoCell = rhoInternal[faceI];
+            const scalar muCell = nuCell * rhoCell;
             const scalar mutFace = nutPatch[faceI]*rhoFace;
             const scalar pSatCell = liquid_->pv(pFace, Tcell);
             const scalar pSatFace = liquid_->pv(pFace, Tface);
@@ -441,7 +444,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             {
                 const scalar YsatFace = pSatFace/pFace*Mv/Mcomp_;
 
-                const scalar gamma = muFace / Sc + mutFace / Sct;
+                const scalar gamma = muCell + mutFace / Sct;
 
                 // mass flux [kg/s/m^2]
                 // positive if mass is condensing
@@ -454,17 +457,33 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
         }
 
         // Output film delta (e.g. H2OThickness) [m]
-        const word ThicknessFieldName(specieName_ + "Thickness");
-
         scalarField &thicknessField =
             outputScalarField
             (
-                specieName_ + "Thickness",//ThicknessFieldName,
+                specieName_ + "Thickness",
                 dimLength,
                 refCast<const fvMesh>(mesh)
             ).boundaryFieldRef()[patch().index()];
-
             thicknessField = mass_/liquidRho/magSf;
+
+            scalarField &massFluxOut =
+                outputScalarField
+                (
+                    specieName_ + "MassFlux",
+                    dimMass/dimArea/dimTime,
+                    refCast<const fvMesh>(mesh)
+                ).boundaryFieldRef()[patch().index()];
+            massFluxOut = dm;
+
+//            scalarField &heatFluxOut =
+//                 outputScalarField
+//                 (
+//                     specieName_ + "MassFlux",
+//                     dimMass/dimArea/dimTime,
+//                     refCast<const fvMesh>(mesh)
+//                 ).boundaryFieldRef()[patch().index()];
+//            heatFluxOut = dm;
+//
 //
 //            // Weight myKDelta and htc
 //            myKDelta_ = 1.0/((1.0/myKDelta_) + (1.0/htc));
@@ -528,7 +547,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
 
     if (fluid_)
     {
-        scalar Qdm = gSum(dm);
+        scalar Qdm = gSum(dm*magSf);
         scalar QMass = gSum(mass_);
 //        scalar Qt = gSum(myKDelta_*(Tpatch - Tinternal)*magSf);
         scalar QtSolid = gSum(KDeltaNbr*(Tpatch - nbrInternalField)*magSf);

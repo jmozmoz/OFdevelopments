@@ -55,7 +55,8 @@ SourceFiles
 #include "autoPtr.H"
 #include "interpolation2DTable.H"
 #include "volFields.H"
-
+#include "basicThermo.H"
+#include "basicSpecieMixture.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -100,7 +101,6 @@ private:
         //- Disallow default bitwise assignment
         void operator=(const wallCondensationSource&);
 
-
 public:
 
     //- Runtime type information
@@ -126,18 +126,14 @@ public:
 
     // Member Functions
 
-        // Explicit and implicit source
+        // Explicit and implicit source for rho
 
             //- Scalar
             virtual void addSup
             (
                 fvMatrix<scalar>& eqn,
                 const label fieldi
-            )
-            {
-                NotImplemented;
-            }
-
+            );
 
         // Explicit and implicit source for compressible equation
 
@@ -148,7 +144,6 @@ public:
                 fvMatrix<scalar>& eqn,
                 const label fieldi
             );
-
 
         // IO
 

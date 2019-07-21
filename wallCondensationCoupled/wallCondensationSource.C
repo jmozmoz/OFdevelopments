@@ -30,6 +30,8 @@ License
 #include "basicThermo.H"
 #include "coupledPolyPatch.H"
 #include "surfaceInterpolate.H"
+#include "psiReactionThermo.H"
+#include "rhoReactionThermo.H"
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -98,29 +100,61 @@ Foam::fv::wallCondensationSource::wallCondensationSource
     )
 
 {
-
     const basicThermo& thermo =
         mesh_.lookupObject<basicThermo>(basicThermo::dictName);
 
-    fieldNames_.setSize(1, thermo.he().name());
+    fieldNames_.setSize(3);
 
-    applied_.setSize(1, false);
+    fieldNames_[0] = thermo.he().name();
+    fieldNames_[1] = specieName_;
+    fieldNames_[2] = "rho";
+//    fieldNames_[3] = "p_rgh"; // we do not need to activate the source
+//                              // for p_rgh, because it will be activated
+//                              // automatically, if rho is active
 
-}
+    Info<<"Field names: " << fieldNames_ << endl;
+
+    applied_.setSize(fieldNames_.size(), false);}
 
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
 void Foam::fv::wallCondensationSource::addSup
 (
-    const volScalarField& rho,
     fvMatrix<scalar>& eqn,
-    const label
+    const label fieldi
 )
 {
-    const basicThermo& thermo =
-        mesh_.lookupObject<basicThermo>(basicThermo::dictName);
+    if (true)
+    {
+        Info<< type() << ": applying source 1 to " << eqn.psi().name()
+            << " for fieldi: " << fieldi << endl;
+    }
 
+    eqn += filmMassSourceFluid_;
+}
+
+void Foam::fv::wallCondensationSource::addSup
+(
+    const volScalarField& rho,
+    fvMatrix<scalar>& eqn,
+    const label fieldi
+)
+{
+    if (true)
+    {
+        Info<< type() << ": applying source 2 to " << eqn.psi().name()
+            << " for fieldi: " << fieldi << endl;
+    }
+
+    if (fieldi == 0)
+    {
+        eqn += filmEnergySourceFluid_;
+    }
+    else
+    {
+        eqn += filmMassSourceFluid_;
+    }
 }
 
 
