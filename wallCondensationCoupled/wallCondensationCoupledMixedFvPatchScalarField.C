@@ -387,9 +387,10 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
     myKDelta_ = kappa(Tpatch)*patch().deltaCoeffs();
 
     scalarField dm(patch().size(), Zero);
+    scalarField dHspec(patch().size(), Zero);
     scalarField hPhaseChange(patch().size(), Zero);
     scalarField dmhPhaseChange(patch().size(), Zero);
-    scalarField hRemoveMass(patch().size(), Zero);
+    scalarField hRemovedMass(patch().size(), Zero);
     scalarField dmhRemoveMass(patch().size(), Zero);
 
     // Fluid Side
@@ -482,7 +483,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
 
             cp[faceI] = liquid_->Cp(pFace, Tface);
             hPhaseChange[faceI] = liquid_->hl(pFace, Tface);
-            hRemoveMass[faceI] = composition.Hs(specieIndex, pCell, Tcell);
+            hRemovedMass[faceI] = composition.Hs(specieIndex, pCell, Tcell);
 
             // Calculate relative humidity
             const scalar invMwmean =
@@ -542,14 +543,28 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             ).boundaryFieldRef()[patch().index()];
         massFluxOut = dm;
 
-//            scalarField &heatFluxOut =
-//                 outputScalarField
-//                 (
-//                     specieName_ + "MassFlux",
-//                     dimMass/dimArea/dimTime,
-//                     refCast<const fvMesh>(mesh)
-//                 ).boundaryFieldRef()[patch().index()];
-//            heatFluxOut = dm;
+        scalarField &rhoH2O =
+            outputScalarField
+            (
+                "densityFluidH2O",
+                dimDensity,
+                refCast<const fvMesh>(mesh)
+            );
+
+        rhoH2O = rhoPatch.internalField()*Ypatch.internalField();
+
+        scalarField &rhoAIR =
+            outputScalarField
+            (
+                "densityFluidAIR",
+                dimDensity,
+                refCast<const fvMesh>(mesh)
+            );
+
+        const volScalarField& Yair =
+            mesh.lookupObject<volScalarField>("AIR");;
+
+        rhoAIR = rhoPatch.internalField()*Yair;
 
         mass_= massOld_ + dm*dt*magSf;
         mass_ = max(mass_, scalar(0));
@@ -557,6 +572,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
 
         // Heat flux due to change of phase [W/m2]
         dmHfg_ = dm*hPhaseChange;
+        dHspec = dm*hRemovedMass;
 
         forAll(faceCells, faceI)
         {
@@ -568,7 +584,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
                /mesh.cellVolumes()[cellI];
 
             filmEnergySource[cellI] =
-               -dm[faceI]*hRemoveMass[faceI]
+               -dm[faceI]*hRemovedMass[faceI]
                *magSf[faceI]
                /mesh.cellVolumes()[cellI];
         }
@@ -630,6 +646,8 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
         scalar QtSolid = gSum(KDeltaNbr*(Tpatch - nbrInternalField)*magSf);
 
         scalar Q = gSum(kappa(Tpatch)*patch().magSf()*snGrad());
+        scalar Qhgf = gSum(dmHfg_*magSf);
+        scalar Qspec = gSum(dHspec*magSf);
 
         Info<< mesh.name() << ':'
             << patch().name() << ':'
@@ -638,13 +656,18 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             << nbrPatch.name() << ':'
             << this->internalField().name() << " :" << nl
             << " heat transfer rate:" << Q << endl
-            << "    Total mass flux   [Kg/s] : " << Qdm << nl
-            << "    Total mass on the wall [Kg] : " << QMass << nl
-            << "    Total heat (>0 leaving the wall to the fluid) [W] : "
-            << Qt
-            << nl
-            << "    Total heat (>0 leaving the wall to the solid) [W] : "
+            << "    Total mass flux [Kg/s]:                            "
+            << Qdm << nl
+            << "    Total mass on the wall [Kg]:                       "
+            << QMass << nl
+            << "    Total heat (>0 leaving the wall to the fluid) [W]: "
+            << Qt << nl
+            << "    Total heat (>0 leaving the wall to the solid) [W]: "
             << QtSolid << nl
+            << "    Total latent heat released [W]:                    "
+            << Qhgf << nl
+            << "    Total specific heat removed from fluid [W]:        "
+            << Qspec << nl
             << " walltemperature "
             << " min:" << gMin(Tpatch)
             << " max:" << gMax(Tpatch)
