@@ -35,14 +35,14 @@ boundary
 }
     AIR
     {
-        internalField   uniform 0.1551;
+        internalField   uniform 0.2816; //0.1551;
 
         boundaryField
         {
             leftLet
             {
                 type            fixedValue;
-                value           uniform 0.1551;
+                value           uniform 0.2816; // 0.1551;
             }
 
             rightLet
@@ -77,14 +77,14 @@ boundary
 
     H2O
     {
-        internalField   uniform 0.8449;
+        internalField   uniform 0.7184; // 0.8449;
 
         boundaryField
         {
             leftLet
             {
                 type            fixedValue;
-                value           uniform 0.8449;
+                value           uniform 0.7184; // 0.8449;
             }
 
             rightLet
@@ -193,7 +193,7 @@ boundary
 
     U
     {
-        internalField   uniform (2.62 0 0);
+        internalField   uniform (2.60 0 0); // 2.62
 
         boundaryField
         {
@@ -226,12 +226,12 @@ boundary
             }
             leftLet
             {
-//                type            fixedValue;
-//                value           uniform ( 2.62 0 0 );
-               type                flowRateInletVelocity;
-               volumetricFlowRate  0.302872;
-               extrapolateProfile  yes;
-               value               uniform (0 0 0);
+               type            fixedValue;
+               value           uniform ( 2.60 0 0 );
+//               type                flowRateInletVelocity;
+//               volumetricFlowRate  0.302872;
+//               extrapolateProfile  yes;
+//               value               uniform (0 0 0);
             }
         }
     }

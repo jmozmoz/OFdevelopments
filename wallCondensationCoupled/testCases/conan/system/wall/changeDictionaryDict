@@ -50,7 +50,7 @@ T
                 type		externalWallHeatFluxTemperature;
                 mode		coefficient;
                 h 		uniform 4461.5;
-                Ta		uniform 310.25;
+                Ta		uniform 306.1;//310.25;
                 kappaMethod	solidThermo;
                 value		$internalField;
 
