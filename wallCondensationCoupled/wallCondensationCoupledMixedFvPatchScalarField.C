@@ -38,6 +38,46 @@ namespace Foam
 namespace compressible
 {
 
+// * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
+
+volScalarField&
+wallCondensationCoupledMixedFvPatchScalarField::outputScalarField
+(
+    const word& fieldName,
+    const dimensionSet& dimSet,
+    const fvMesh& mesh
+)
+{
+    if (!mesh.foundObject<volScalarField>(fieldName))
+    {
+        tmp<volScalarField> tField
+        (
+            new volScalarField
+            (
+                IOobject
+                (
+                    fieldName,
+                    mesh.time().timeName(),
+                    mesh,
+                    IOobject::NO_READ,
+                    IOobject::AUTO_WRITE
+                ),
+                mesh,
+                dimensionedScalar("zero", dimSet, Zero)
+            )
+        );
+
+        tField.ptr()->store();
+    }
+
+    return
+        const_cast<volScalarField &>
+        (
+            mesh.lookupObject<volScalarField>(fieldName)
+        );
+}
+
+
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
 wallCondensationCoupledMixedFvPatchScalarField::
@@ -60,6 +100,9 @@ wallCondensationCoupledMixedFvPatchScalarField
     liquidDict_(nullptr),
     mass_(patch().size(), Zero),
     massOld_(patch().size(), Zero),
+    myKDelta_(patch().size(), Zero),
+    dmHfg_(patch().size(), Zero),
+    mpCpTp_(patch().size(), Zero),
     Mcomp_(0.0),
     fluid_(false),
     thickness_(patch().size(), Zero),
@@ -93,6 +136,9 @@ wallCondensationCoupledMixedFvPatchScalarField
     liquidDict_(psf.liquidDict_),
     mass_(psf.mass_, mapper),
     massOld_(psf.massOld_, mapper),
+    myKDelta_(psf.myKDelta_, mapper),
+    dmHfg_(psf.dmHfg_, mapper),
+    mpCpTp_(psf.mpCpTp_, mapper),
     Mcomp_(psf.Mcomp_),
     fluid_(psf.fluid_),
     thickness_(psf.thickness_, mapper),
@@ -121,6 +167,9 @@ wallCondensationCoupledMixedFvPatchScalarField
     liquidDict_(),
     mass_(patch().size(), Zero),
     massOld_(patch().size(), Zero),
+    myKDelta_(patch().size(), Zero),
+    dmHfg_(patch().size(), Zero),
+    mpCpTp_(patch().size(), Zero),
     Mcomp_(dict.lookupOrDefault<scalar>("carrierMolWeight", 0.0)),
     fluid_(false),
     thickness_(patch().size(), Zero),
@@ -216,10 +265,13 @@ wallCondensationCoupledMixedFvPatchScalarField
     kappaLayers_(psf.kappaLayers_),
     contactRes_(psf.contactRes_),
     specieName_(psf.specieName_),
-    liquid_(psf.liquid_),
+    liquid_(psf.liquid_, false), // do not re-use it but use clone internally
     liquidDict_(psf.liquidDict_),
     mass_(psf.mass_),
     massOld_(psf.massOld_),
+    myKDelta_(psf.myKDelta_),
+    dmHfg_(psf.dmHfg_),
+    mpCpTp_(psf.mpCpTp_),
     Mcomp_(psf.Mcomp_),
     fluid_(psf.fluid_),
     thickness_(psf.thickness_),
@@ -240,6 +292,9 @@ void wallCondensationCoupledMixedFvPatchScalarField::autoMap
     {
         mass_.autoMap(m);
         massOld_.autoMap(m);
+        myKDelta_.autoMap(m);
+        dmHfg_.autoMap(m);
+        mpCpTp_.autoMap(m);
         thickness_.autoMap(m);
     }
 }
@@ -263,6 +318,9 @@ void wallCondensationCoupledMixedFvPatchScalarField::rmap
     {
         mass_.rmap(tiptf.mass_, addr);
         massOld_.rmap(tiptf.mass_, addr);
+        myKDelta_.rmap(tiptf.myKDelta_, addr);
+        dmHfg_.rmap(tiptf.dmHfg_, addr);
+        mpCpTp_.rmap(tiptf.mpCpTp_, addr);
         thickness_.rmap(tiptf.thickness_, addr);
     }
 }
@@ -296,6 +354,15 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
     scalarField Tinternal(patchInternalField());
     scalarField& Tpatch = *this;
 
+    const volScalarField& TmeshField = static_cast<const volScalarField&>
+    (
+        internalField()
+    );
+    scalarField TpatchOld
+    (
+        TmeshField.oldTime().boundaryField()[patch().index()]
+    );
+
     typedef wallCondensationCoupledMixedFvPatchScalarField thisType;
 
     const fvPatchScalarField& nbrTp =
@@ -316,6 +383,8 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
     // Swap to obtain full local values of neighbour internal field
     scalarField nbrInternalField(nbrField.patchInternalField());
     mpp.distribute(nbrInternalField);
+
+    myKDelta_ = kappa(Tpatch)*patch().deltaCoeffs();
 
     scalarField dm(patch().size(), Zero);
     scalarField hPhaseChange(patch().size(), Zero);
@@ -361,9 +430,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
                 )
             );
 
-
         const scalarField myDelta(patch().deltaCoeffs());
-
 
         scalarField cp(patch().size(), Zero);
         scalarField liquidRho(patch().size(), Zero);
@@ -466,14 +533,14 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             ).boundaryFieldRef()[patch().index()];
             thicknessField = mass_/liquidRho/magSf;
 
-            scalarField &massFluxOut =
-                outputScalarField
-                (
-                    specieName_ + "MassFlux",
-                    dimMass/dimArea/dimTime,
-                    refCast<const fvMesh>(mesh)
-                ).boundaryFieldRef()[patch().index()];
-            massFluxOut = dm;
+        scalarField &massFluxOut =
+            outputScalarField
+            (
+                specieName_ + "MassFlux",
+                dimMass/dimArea/dimTime,
+                refCast<const fvMesh>(mesh)
+            ).boundaryFieldRef()[patch().index()];
+        massFluxOut = dm;
 
 //            scalarField &heatFluxOut =
 //                 outputScalarField
@@ -483,18 +550,13 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
 //                     refCast<const fvMesh>(mesh)
 //                 ).boundaryFieldRef()[patch().index()];
 //            heatFluxOut = dm;
-//
-//
-//            // Weight myKDelta and htc
-//            myKDelta_ = 1.0/((1.0/myKDelta_) + (1.0/htc));
-//
-//            mpCpTp_ = mass_*cp/dt/magSf;
-//
-//            // Heat flux due to change of phase [W/m2]
-//            dmHfg_ = dm*hPhaseChange;
 
         mass_= massOld_ + dm*dt*magSf;
         mass_ = max(mass_, scalar(0));
+        mpCpTp_ = mass_*cp/dt/magSf;
+
+        // Heat flux due to change of phase [W/m2]
+        dmHfg_ = dm*hPhaseChange;
 
         forAll(faceCells, faceI)
         {
@@ -524,7 +586,17 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
     }
     mpp.distribute(KDeltaNbr);
 
-    scalarField KDelta(kappa(Tpatch)*patch().deltaCoeffs());
+    scalarField mpCpTpNbr(patch().size(), Zero);
+    scalarField dmHfgNbr(patch().size(), Zero);
+
+    if (!fluid_)
+    {
+        mpCpTpNbr = nbrField.mpCpTp();
+        mpp.distribute(mpCpTpNbr);
+
+        dmHfgNbr = nbrField.dmHfg();
+        mpp.distribute(dmHfgNbr);
+    }
 
     scalarField qr(Tpatch.size(), 0.0);
     if (qrName_ != "none")
@@ -539,9 +611,14 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
         mpp.distribute(qrNbr);
     }
 
-    valueFraction() = KDeltaNbr/(KDeltaNbr + KDelta);
-    refValue() = nbrInternalField;
-    refGrad() = (qr + qrNbr)/kappa(Tpatch);
+    const scalarField dmHfg(dmHfgNbr + dmHfg_);
+    const scalarField mpCpdt(mpCpTpNbr + mpCpTp_);
+
+    // qr > 0 (heat up the wall)
+    scalarField alpha(KDeltaNbr + mpCpdt - (qr + qrNbr)/Tpatch);
+
+    valueFraction() = alpha/(alpha + myKDelta_);
+    refValue() = (KDeltaNbr*nbrInternalField + mpCpdt*TpatchOld + dmHfg)/alpha;
 
     mixedFvPatchScalarField::updateCoeffs();
 
@@ -549,7 +626,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
     {
         scalar Qdm = gSum(dm*magSf);
         scalar QMass = gSum(mass_);
-//        scalar Qt = gSum(myKDelta_*(Tpatch - Tinternal)*magSf);
+        scalar Qt = gSum(myKDelta_*(Tpatch - Tinternal)*magSf);
         scalar QtSolid = gSum(KDeltaNbr*(Tpatch - nbrInternalField)*magSf);
 
         scalar Q = gSum(kappa(Tpatch)*patch().magSf()*snGrad());
@@ -564,7 +641,7 @@ void wallCondensationCoupledMixedFvPatchScalarField::updateCoeffs()
             << "    Total mass flux   [Kg/s] : " << Qdm << nl
             << "    Total mass on the wall [Kg] : " << QMass << nl
             << "    Total heat (>0 leaving the wall to the fluid) [W] : "
-//            << Qt
+            << Qt
             << nl
             << "    Total heat (>0 leaving the wall to the solid) [W] : "
             << QtSolid << nl
@@ -605,46 +682,6 @@ void wallCondensationCoupledMixedFvPatchScalarField::write
 
     temperatureCoupledBase::write(os);
 }
-
-// * * * * * * * * * * * * Private Member Functions  * * * * * * * * * * * * //
-
-volScalarField&
-wallCondensationCoupledMixedFvPatchScalarField::outputScalarField
-(
-    const word& fieldName,
-    const dimensionSet& dimSet,
-    const fvMesh& mesh
-)
-{
-    if (!mesh.foundObject<volScalarField>(fieldName))
-    {
-        tmp<volScalarField> tField
-        (
-            new volScalarField
-            (
-                IOobject
-                (
-                    fieldName,
-                    mesh.time().timeName(),
-                    mesh,
-                    IOobject::NO_READ,
-                    IOobject::AUTO_WRITE
-                ),
-                mesh,
-                dimensionedScalar("zero", dimSet, Zero)
-            )
-        );
-
-        tField.ptr()->store();
-    }
-
-    return
-        const_cast<volScalarField &>
-        (
-            mesh.lookupObject<volScalarField>(fieldName)
-        );
-}
-
 
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

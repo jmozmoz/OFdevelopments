@@ -135,6 +135,15 @@ private:
         //- Mass accumulated on faces up to last time step
         scalarField massOld_;
 
+        //- Cache myDelta
+        scalarField myKDelta_;
+
+        //- Phase change energy
+        scalarField dmHfg_;
+
+        //- Thermal inertia
+        scalarField mpCpTp_;
+        
         //- Average molecular weight for the carrier mixture in the gas phase
         scalar Mcomp_;
 
@@ -244,6 +253,25 @@ public:
             const fvPatchScalarField&,
             const labelList&
         );
+
+
+        //- Return myKDelta
+        const scalarField myKDelta() const
+        {
+            return myKDelta_;
+        }
+
+        //- Return mpCpTp
+        const scalarField mpCpTp() const
+        {
+            return mpCpTp_;
+        }
+
+        //- Return dmHfg
+        const scalarField dmHfg() const
+        {
+            return dmHfg_;
+        }
 
         //- Update the coefficients associated with the patch field
         virtual void updateCoeffs();
